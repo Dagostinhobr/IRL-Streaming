@@ -36,8 +36,11 @@ fun CameraPreview(
 }
 
 /**
- * Pinch para zoom e toque para focar. Consome os eventos para não conflitar
- * com o preview/encoder.
+ * PT: Pinch para zoom e toque para focar. Consome os eventos para não conflitar
+ * PT: com o preview/encoder.
+ *
+ * EN: Pinch to zoom and tap to focus. Consumes the events so they do not conflict
+ * EN: with the preview/encoder.
  */
 fun Modifier.cameraGestures(
     onTap: (Offset) -> Unit,

@@ -12,7 +12,8 @@ local.properties
 *.apk
 *.aab
 
-# Assinatura e artefatos de distribuição (não versionar)
+# PT: Assinatura e artefatos de distribuição (não versionar)
+# EN: Signing and distribution artifacts (do not commit)
 /keystore.properties
 /.keys/
 /dist/

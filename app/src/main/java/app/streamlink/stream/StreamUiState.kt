@@ -24,16 +24,19 @@ data class StreamUiState(
     val muted: Boolean = false,
     val torchOn: Boolean = false,
     val frontCamera: Boolean = false,
-    /** A câmera principal ativa é uma câmera USB (UVC). */
+    // PT: A câmera principal ativa é uma câmera USB (UVC).
+    // EN: The active main camera is a USB (UVC) camera.
     val usbCamera: Boolean = false,
     val zoom: Float = 1f,
     val maxZoom: Float = 4f,
     val resolutionLabel: String = "",
     val orientation: VideoOrientation = VideoOrientation.PORTRAIT,
     val reconnectAttempt: Int = 0,
-    /** A janela PiP com a segunda câmera está ativa no vídeo. */
+    // PT: A janela PiP com a segunda câmera está ativa no vídeo.
+    // EN: The PiP window with the second camera is active in the video.
     val dualCameraActive: Boolean = false,
-    /** Motivo pelo qual o modo PiP não pôde ser ativado. */
+    // PT: Motivo pelo qual o modo PiP não pôde ser ativado.
+    // EN: Reason why PiP mode could not be enabled.
     val dualCameraError: String? = null
 ) {
     val isLive: Boolean

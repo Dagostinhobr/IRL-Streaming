@@ -50,11 +50,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.streamlink.BuildConfig
 import app.streamlink.R
+import app.streamlink.data.AppLanguage
 import app.streamlink.data.ChatProvider
 import app.streamlink.data.CodecSetting
 import app.streamlink.data.PipPosition
 import app.streamlink.data.ResolutionPreset
 import app.streamlink.data.VideoOrientation
+import app.streamlink.i18n.localizedLabel
+import app.streamlink.i18n.tr
 import app.streamlink.stream.StreamStatus
 import app.streamlink.ui.StreamViewModel
 import app.streamlink.ui.components.ChoiceChips
@@ -96,10 +99,10 @@ fun SettingsScreen(
         containerColor = Ink,
         topBar = {
             TopAppBar(
-                title = { Text("Ajustes", fontWeight = FontWeight.SemiBold) },
+                title = { Text(tr("Ajustes", "Settings"), fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Voltar", "Back"))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -117,17 +120,17 @@ fun SettingsScreen(
             contentPadding = PaddingValues(bottom = 28.dp)
         ) {
             item {
-                SettingsSection("Transmissão") {
-                    LabelValueRow("Destino", target?.name ?: "Nenhum")
+                SettingsSection(tr("Transmissão", "Streaming")) {
+                    LabelValueRow(tr("Destino", "Target"), target?.name ?: tr("Nenhum", "None"))
                     TextButton(
                         onClick = onOpenTargets,
                         modifier = Modifier.padding(top = 2.dp)
                     ) {
-                        Text("Gerenciar destinos", color = Mint, fontSize = 12.sp)
+                        Text(tr("Gerenciar destinos", "Manage targets"), color = Mint, fontSize = 12.sp)
                     }
 
                     SectionDivider()
-                    SettingLabel("Resolução")
+                    SettingLabel(tr("Resolução", "Resolution"))
                     ChoiceChips(
                         options = ResolutionPreset.entries,
                         selected = settings.resolution,
@@ -149,7 +152,7 @@ fun SettingsScreen(
                     )
 
                     SectionDivider()
-                    SettingLabel("Bitrate de vídeo")
+                    SettingLabel(tr("Bitrate de vídeo", "Video bitrate"))
                     ChoiceChips(
                         options = BITRATE_OPTIONS,
                         selected = settings.videoBitrateKbps,
@@ -171,18 +174,18 @@ fun SettingsScreen(
                     )
 
                     SectionDivider()
-                    SettingLabel("Orientação do vídeo")
+                    SettingLabel(tr("Orientação do vídeo", "Video orientation"))
                     ChoiceChips(
                         options = VideoOrientation.entries,
                         selected = settings.orientation,
-                        label = { it.label },
+                        label = { it.localizedLabel() },
                         onSelect = { value ->
                             viewModel.updateSettings { it.copy(orientation = value) }
                         }
                     )
                     if (state.status == StreamStatus.LIVE) {
                         Text(
-                            "Pare a transmissão para aplicar mudanças de resolução, FPS ou orientação.",
+                            tr("Pare a transmissão para aplicar mudanças de resolução, FPS ou orientação.", "Stop the stream to apply resolution, FPS or orientation changes."),
                             color = Warn,
                             fontSize = 11.sp,
                             modifier = Modifier.padding(top = 8.dp)
@@ -192,8 +195,8 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsSection("Áudio") {
-                    SettingLabel("Microfone")
+                SettingsSection(tr("Áudio", "Audio")) {
+                    SettingLabel(tr("Microfone", "Microphone"))
                     AudioInputSelector(
                         options = audioDevices,
                         selectedId = settings.audioInputId,
@@ -202,9 +205,14 @@ fun SettingsScreen(
                     )
                     if (audioDevices.any { it.isUsb }) {
                         Text(
-                            "Microfone USB detetado. Se pertence à câmera ligada, é escolhido " +
-                                "automaticamente; pode trocar a entrada a qualquer momento, " +
-                                "inclusive durante a live.",
+                            tr(
+                                "Microfone USB detetado. Se pertence à câmera ligada, é escolhido " +
+                                    "automaticamente; pode trocar a entrada a qualquer momento, " +
+                                    "inclusive durante a live.",
+                                "USB microphone detected. If it belongs to the connected camera " +
+                                    "it is selected automatically; you can switch the input at any " +
+                                    "time, including during the live stream."
+                            ),
                             color = Mint,
                             fontSize = 11.sp,
                             modifier = Modifier.padding(top = 4.dp)
@@ -221,7 +229,7 @@ fun SettingsScreen(
                         }
                     )
                     SectionDivider()
-                    SettingLabel("Taxa de amostragem")
+                    SettingLabel(tr("Taxa de amostragem", "Sample rate"))
                     ChoiceChips(
                         options = listOf(44_100, 48_000),
                         selected = settings.sampleRate,
@@ -232,7 +240,7 @@ fun SettingsScreen(
                     )
                     SectionDivider()
                     SwitchSettingRow(
-                        title = "Estéreo",
+                        title = tr("Estéreo", "Stereo"),
                         checked = settings.stereo,
                         onCheckedChange = { value ->
                             viewModel.updateSettings { it.copy(stereo = value) }
@@ -240,7 +248,7 @@ fun SettingsScreen(
                     )
                     SectionDivider()
                     SwitchSettingRow(
-                        title = "Cancelamento de eco",
+                        title = tr("Cancelamento de eco", "Echo cancellation"),
                         checked = settings.echoCancellation,
                         onCheckedChange = { value ->
                             viewModel.updateSettings { it.copy(echoCancellation = value) }
@@ -248,7 +256,7 @@ fun SettingsScreen(
                     )
                     SectionDivider()
                     SwitchSettingRow(
-                        title = "Supressão de ruído",
+                        title = tr("Supressão de ruído", "Noise suppression"),
                         checked = settings.noiseSuppression,
                         onCheckedChange = { value ->
                             viewModel.updateSettings { it.copy(noiseSuppression = value) }
@@ -258,23 +266,28 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsSection("Câmera") {
+                SettingsSection(tr("Câmera", "Camera")) {
                     Text(
-                        "Escolha a câmera principal. Câmeras USB (UVC) ligadas por OTG " +
-                            "aparecem automaticamente na lista, mesmo que não sejam " +
-                            "reconhecidas pelo sistema como câmera nativa.",
+                        tr(
+                            "Escolha a câmera principal. Câmeras USB (UVC) ligadas por OTG " +
+                                "aparecem automaticamente na lista, mesmo que não sejam " +
+                                "reconhecidas pelo sistema como câmera nativa.",
+                            "Choose the main camera. USB (UVC) cameras connected via OTG " +
+                                "appear automatically in the list, even if the system does not " +
+                                "recognise them as a native camera."
+                        ),
                         color = TextMuted,
                         fontSize = 12.sp
                     )
                     Spacer(Modifier.height(8.dp))
-                    SettingLabel("Câmera principal")
+                    SettingLabel(tr("Câmera principal", "Main camera"))
                     val selectedCameraId = settings.cameraId
                     CameraChoiceRow(
                         camera = CameraCapabilities.CameraInfo(
                             id = "",
                             facing = -1,
-                            label = "Automática (traseira)",
-                            detail = "Câmera padrão do aparelho"
+                            label = tr("Automática (traseira)", "Automatic (rear)"),
+                            detail = tr("Câmera padrão do aparelho", "Device default camera")
                         ),
                         selected = selectedCameraId.isBlank(),
                         onClick = {
@@ -290,18 +303,22 @@ fun SettingsScreen(
                     }
                     if (cameraOptions.isEmpty()) {
                         Text(
-                            "Nenhuma câmera detectada.",
+                            tr("Nenhuma câmera detectada.", "No camera detected."),
                             color = TextMuted,
                             fontSize = 11.sp
                         )
                     }
                     TextButton(onClick = viewModel::refreshCameras) {
-                        Text("Atualizar lista", color = Mint, fontSize = 12.sp)
+                        Text(tr("Atualizar lista", "Refresh list"), color = Mint, fontSize = 12.sp)
                     }
                     if (settings.cameraId.startsWith("usb:")) {
                         Text(
-                            "Câmera USB ativa: zoom, lanterna e PiP ficam indisponíveis. " +
-                                "O áudio USB da câmera é usado automaticamente quando existe.",
+                            tr(
+                                "Câmera USB ativa: zoom, lanterna e PiP ficam indisponíveis. " +
+                                    "O áudio USB da câmera é usado automaticamente quando existe.",
+                                "USB camera active: zoom, torch and PiP are unavailable. " +
+                                    "The camera's USB audio is used automatically when present."
+                            ),
                             color = Mint,
                             fontSize = 11.sp
                         )
@@ -310,10 +327,10 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsSection("Câmera e conexão") {
+                SettingsSection(tr("Câmera e conexão", "Camera and connection")) {
                     SwitchSettingRow(
-                        title = "Manter tela ligada",
-                        subtitle = "Evita que o Android apague a tela durante a live",
+                        title = tr("Manter tela ligada", "Keep screen on"),
+                        subtitle = tr("Evita que o Android apague a tela durante a live", "Prevents Android from turning the screen off during the live stream"),
                         checked = settings.keepScreenOn,
                         onCheckedChange = { value ->
                             viewModel.updateSettings { it.copy(keepScreenOn = value) }
@@ -321,8 +338,8 @@ fun SettingsScreen(
                     )
                     SectionDivider()
                     SwitchSettingRow(
-                        title = "Reconectar automaticamente",
-                        subtitle = "Até 5 tentativas com 3s de intervalo",
+                        title = tr("Reconectar automaticamente", "Reconnect automatically"),
+                        subtitle = tr("Até 5 tentativas com 3s de intervalo", "Up to 5 attempts, 3s apart"),
                         checked = settings.autoReconnect,
                         onCheckedChange = { value ->
                             viewModel.updateSettings { it.copy(autoReconnect = value) }
@@ -330,7 +347,7 @@ fun SettingsScreen(
                     )
                     SectionDivider()
                     Text(
-                        "Toque no preview para focar, use pinça para zoom e os botões laterais para lanterna, troca de câmera e mudo.",
+                        tr("Toque no preview para focar, use pinça para zoom e os botões laterais para lanterna, troca de câmera e mudo.", "Tap the preview to focus, pinch to zoom and use the side buttons for torch, camera switch and mute."),
                         color = TextMuted,
                         fontSize = 11.sp
                     )
@@ -338,21 +355,25 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsSection("PiP com duas câmeras") {
+                SettingsSection(tr("PiP com duas câmeras", "PiP with two cameras")) {
                     Text(
-                        "Desenha uma segunda câmera como janela sobre o vídeo transmitido e gravado. " +
-                            "A câmera principal continua com foco, zoom e lanterna.",
+                        tr(
+                            "Desenha uma segunda câmera como janela sobre o vídeo transmitido e gravado. " +
+                                "A câmera principal continua com foco, zoom e lanterna.",
+                            "Draws a second camera as a window over the streamed and recorded video. " +
+                                "The main camera keeps focus, zoom and torch."
+                        ),
                         color = TextMuted,
                         fontSize = 12.sp
                     )
                     Spacer(Modifier.height(8.dp))
                     val usbMainCamera = settings.cameraId.startsWith("usb:")
                     SwitchSettingRow(
-                        title = "Ativar janela PiP",
+                        title = tr("Ativar janela PiP", "Enable PiP window"),
                         subtitle = when {
-                            usbMainCamera -> "Indisponível com câmera USB"
-                            dualCameraSupported -> "Abre duas câmeras ao mesmo tempo"
-                            else -> "Este aparelho não suporta duas câmeras simultâneas"
+                            usbMainCamera -> tr("Indisponível com câmera USB", "Unavailable with USB camera")
+                            dualCameraSupported -> tr("Abre duas câmeras ao mesmo tempo", "Opens two cameras at the same time")
+                            else -> tr("Este aparelho não suporta duas câmeras simultâneas", "This device does not support two simultaneous cameras")
                         },
                         checked = settings.dualCamera.enabled && dualCameraSupported && !usbMainCamera,
                         enabled = dualCameraSupported && !usbMainCamera,
@@ -364,8 +385,12 @@ fun SettingsScreen(
                     if (!dualCameraSupported) {
                         Spacer(Modifier.height(6.dp))
                         Text(
-                            "O Android só libera duas câmeras simultâneas em aparelhos que anunciam " +
-                                "essa combinação. Neste modelo o modo fica desabilitado.",
+                            tr(
+                                "O Android só libera duas câmeras simultâneas em aparelhos que anunciam " +
+                                    "essa combinação. Neste modelo o modo fica desabilitado.",
+                                "Android only allows two simultaneous cameras on devices that advertise " +
+                                    "that combination. On this model the mode is disabled."
+                            ),
                             color = Warn,
                             fontSize = 11.sp
                         )
@@ -379,7 +404,7 @@ fun SettingsScreen(
                         }
 
                         SectionDivider()
-                        SettingLabel("Câmera principal")
+                        SettingLabel(tr("Câmera principal", "Main camera"))
                         cameras.forEach { camera ->
                             CameraChoiceRow(
                                 camera = camera,
@@ -396,7 +421,7 @@ fun SettingsScreen(
                         }
 
                         SectionDivider()
-                        SettingLabel("Câmera da janela (PiP)")
+                        SettingLabel(tr("Câmera da janela (PiP)", "PiP window camera"))
                         cameras.filter { it.id != mainId }.forEach { camera ->
                             CameraChoiceRow(
                                 camera = camera,
@@ -408,18 +433,18 @@ fun SettingsScreen(
                         }
 
                         SectionDivider()
-                        SettingLabel("Posição da janela")
+                        SettingLabel(tr("Posição da janela", "Window position"))
                         ChoiceChips(
                             options = PipPosition.entries,
                             selected = settings.dualCamera.position,
-                            label = { it.label },
+                            label = { it.localizedLabel() },
                             onSelect = { value ->
                                 viewModel.updateDualCamera { it.copy(position = value) }
                             }
                         )
 
                         SectionDivider()
-                        SettingLabel("Tamanho da janela")
+                        SettingLabel(tr("Tamanho da janela", "Window size"))
                         ChoiceChips(
                             options = listOf(20, 30, 40),
                             selected = settings.dualCamera.sizePercent,
@@ -430,7 +455,7 @@ fun SettingsScreen(
                         )
 
                         SectionDivider()
-                        SettingLabel("Rotação da janela")
+                        SettingLabel(tr("Rotação da janela", "Window rotation"))
                         ChoiceChips(
                             options = listOf(0, 90, 180, 270),
                             selected = settings.dualCamera.rotation,
@@ -442,17 +467,17 @@ fun SettingsScreen(
 
                         SectionDivider()
                         TextButton(onClick = viewModel::swapDualCameras) {
-                            Text("Trocar principal com a janela", color = Mint, fontSize = 12.sp)
+                            Text(tr("Trocar principal com a janela", "Swap main and window"), color = Mint, fontSize = 12.sp)
                         }
 
                         val error = state.dualCameraError
                         if (error != null) {
                             Text(error, color = Warn, fontSize = 11.sp)
                             TextButton(onClick = viewModel::clearDualCameraError) {
-                                Text("Dispensar aviso", color = Mint, fontSize = 11.sp)
+                                Text(tr("Dispensar aviso", "Dismiss warning"), color = Mint, fontSize = 11.sp)
                             }
                         } else if (state.dualCameraActive) {
-                            Text("Janela PiP ativa no vídeo.", color = Mint, fontSize = 11.sp)
+                            Text(tr("Janela PiP ativa no vídeo.", "PiP window active in the video."), color = Mint, fontSize = 11.sp)
                         }
                     }
                 }
@@ -461,24 +486,28 @@ fun SettingsScreen(
             item {
                 SettingsSection("VDO.Ninja") {
                     Text(
-                        "Use um ID de ligação ou uma sala, gere links P2P e abra o estúdio no app. " +
-                            "A publicação nativa via WHIP é experimental.",
+                        tr(
+                            "Use um ID de ligação ou uma sala, gere links P2P e abra o estúdio no app. " +
+                                "A publicação nativa via WHIP é experimental.",
+                            "Use a stream ID or a room, generate P2P links and open the studio in the app. " +
+                                "Native WHIP publishing is experimental."
+                        ),
                         color = TextMuted,
                         fontSize = 12.sp
                     )
                     if (settings.vdoNinja.streamId.isNotBlank()) {
                         Spacer(Modifier.height(8.dp))
-                        LabelValueRow("ID de ligação", settings.vdoNinja.streamId)
+                        LabelValueRow(tr("ID de ligação", "Stream ID"), settings.vdoNinja.streamId)
                     }
                     if (settings.vdoNinja.room.isNotBlank()) {
                         Spacer(Modifier.height(4.dp))
-                        LabelValueRow("Sala", settings.vdoNinja.room)
+                        LabelValueRow(tr("Sala", "Room"), settings.vdoNinja.room)
                     }
                     TextButton(
                         onClick = onOpenVdoNinja,
                         modifier = Modifier.padding(top = 4.dp)
                     ) {
-                        Text("Abrir integração VDO.Ninja", color = Mint, fontSize = 12.sp)
+                        Text(tr("Abrir integração VDO.Ninja", "Open VDO.Ninja integration"), color = Mint, fontSize = 12.sp)
                     }
                 }
             }
@@ -488,7 +517,7 @@ fun SettingsScreen(
                     ChoiceChips(
                         options = ChatProvider.entries,
                         selected = settings.chat.provider,
-                        label = { it.label },
+                        label = { it.localizedLabel() },
                         onSelect = { value ->
                             viewModel.updateSettings { it.copy(chat = it.chat.copy(provider = value)) }
                         }
@@ -501,8 +530,8 @@ fun SettingsScreen(
                             onValueChange = { value ->
                                 viewModel.updateSettings { it.copy(chat = it.chat.copy(channel = value)) }
                             },
-                            label = { Text("Canal da Twitch") },
-                            placeholder = { Text("ex.: casimito") },
+                            label = { Text(tr("Canal da Twitch", "Twitch channel")) },
+                            placeholder = { Text(tr("ex.: casimito", "e.g. casimito")) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -512,8 +541,8 @@ fun SettingsScreen(
                             onValueChange = { value ->
                                 viewModel.updateSettings { it.copy(chat = it.chat.copy(username = value)) }
                             },
-                            label = { Text("Usuário (opcional para enviar)") },
-                            placeholder = { Text("seu_login") },
+                            label = { Text(tr("Usuário (opcional para enviar)", "Username (optional for sending)")) },
+                            placeholder = { Text(tr("seu_login", "your_login")) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -523,7 +552,7 @@ fun SettingsScreen(
                             onValueChange = { value ->
                                 viewModel.updateSettings { it.copy(chat = it.chat.copy(oauthToken = value)) }
                             },
-                            label = { Text("Token OAuth (chat:read chat:edit)") },
+                            label = { Text(tr("Token OAuth (chat:read chat:edit)", "OAuth token (chat:read chat:edit)")) },
                             singleLine = true,
                             visualTransformation = if (tokenVisible) VisualTransformation.None else PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -531,14 +560,14 @@ fun SettingsScreen(
                                 IconButton(onClick = { tokenVisible = !tokenVisible }) {
                                     Icon(
                                         imageVector = if (tokenVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                        contentDescription = "Mostrar token"
+                                        contentDescription = tr("Mostrar token", "Show token")
                                     )
                                 }
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
                         Text(
-                            "A leitura do chat funciona sem token. Para enviar mensagens, gere um token em twitchapps.com/tmi e informe também o usuário.",
+                            tr("A leitura do chat funciona sem token. Para enviar mensagens, gere um token em twitchapps.com/tmi e informe também o usuário.", "Reading chat works without a token. To send messages, generate a token at twitchapps.com/tmi and also provide the username."),
                             color = TextMuted,
                             fontSize = 11.sp,
                             modifier = Modifier.padding(top = 8.dp)
@@ -546,7 +575,7 @@ fun SettingsScreen(
 
                         SectionDivider()
                         SwitchSettingRow(
-                            title = "Mostrar chat sobre o vídeo",
+                            title = tr("Mostrar chat sobre o vídeo", "Show chat over the video"),
                             checked = settings.showChatOverlay,
                             onCheckedChange = { value ->
                                 viewModel.updateSettings { it.copy(showChatOverlay = value) }
@@ -554,7 +583,7 @@ fun SettingsScreen(
                         )
                         SectionDivider()
                         SwitchSettingRow(
-                            title = "Horário nas mensagens",
+                            title = tr("Horário nas mensagens", "Timestamps in messages"),
                             checked = settings.chat.showTimestamps,
                             onCheckedChange = { value ->
                                 viewModel.updateSettings { it.copy(chat = it.chat.copy(showTimestamps = value)) }
@@ -562,8 +591,8 @@ fun SettingsScreen(
                         )
                         SectionDivider()
                         SwitchSettingRow(
-                            title = "Ler chat em voz alta (TTS)",
-                            subtitle = "Usa a voz do sistema; só durante a live",
+                            title = tr("Ler chat em voz alta (TTS)", "Read chat aloud (TTS)"),
+                            subtitle = tr("Usa a voz do sistema; só durante a live", "Uses the system voice; only while live"),
                             checked = settings.chat.textToSpeech,
                             onCheckedChange = { value ->
                                 viewModel.updateSettings { it.copy(chat = it.chat.copy(textToSpeech = value)) }
@@ -574,11 +603,33 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsSection("Sobre") {
+                SettingsSection(tr("Idioma", "Language")) {
+                    Text(
+                        tr(
+                            "Escolha o idioma da interface. A mudança é aplicada imediatamente.",
+                            "Choose the interface language. The change is applied immediately."
+                        ),
+                        color = TextMuted,
+                        fontSize = 12.sp
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    ChoiceChips(
+                        options = AppLanguage.entries,
+                        selected = settings.language,
+                        label = { it.nativeName },
+                        onSelect = { value ->
+                            viewModel.updateSettings { it.copy(language = value) }
+                        }
+                    )
+                }
+            }
+
+            item {
+                SettingsSection(tr("Sobre", "About")) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Image(
                             painter = painterResource(R.drawable.logo_irl),
-                            contentDescription = "Logo IRL Streaming",
+                            contentDescription = tr("Logo IRL Streaming", "IRL Streaming logo"),
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(64.dp)
@@ -597,23 +648,29 @@ fun SettingsScreen(
                                 Text("${BuildConfig.VERSION_NAME} (beta)", color = Mint, fontSize = 12.sp)
                             }
                             Text(
-                                "Transmissão IRL para Android",
+                                tr("Transmissão IRL para Android", "IRL streaming for Android"),
                                 color = TextMuted,
                                 fontSize = 11.sp
                             )
                         }
                     }
                     Text(
-                        "App Android independente de IRL streaming inspirado no Moblin. " +
-                            "RTMP/RTMPS/SRT/RTSP/UDP, WHIP (WebRTC), VDO.Ninja com ID de ligação, " +
-                            "gravação local, chat da Twitch, microfone USB, PiP com duas câmeras e " +
-                            "importação de links moblin://.",
+                        tr(
+                            "App Android independente de IRL streaming inspirado no Moblin. " +
+                                "RTMP/RTMPS/SRT/RTSP/UDP, WHIP (WebRTC), VDO.Ninja com ID de ligação, " +
+                                "gravação local, chat da Twitch, microfone USB, PiP com duas câmeras e " +
+                                "importação de links moblin://.",
+                            "Independent Android IRL streaming app inspired by Moblin. " +
+                                "RTMP/RTMPS/SRT/RTSP/UDP, WHIP (WebRTC), VDO.Ninja with stream ID, " +
+                                "local recording, Twitch chat, USB microphone, two-camera PiP and " +
+                                "moblin:// link import."
+                        ),
                         color = TextMuted,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(top = 12.dp)
                     )
                     Text(
-                        "Não afiliado ao Moblin, Twitch, YouTube, Kick ou VDO.Ninja.",
+                        tr("Não afiliado ao Moblin, Twitch, YouTube, Kick ou VDO.Ninja.", "Not affiliated with Moblin, Twitch, YouTube, Kick or VDO.Ninja."),
                         color = TextMuted,
                         fontSize = 10.sp,
                         modifier = Modifier.padding(top = 6.dp)
@@ -644,8 +701,8 @@ private fun AudioInputSelector(
 ) {
     Column(Modifier.fillMaxWidth()) {
         AudioInputRow(
-            title = "Automático",
-            subtitle = "Microfone interno do aparelho",
+            title = tr("Automático", "Automatic"),
+            subtitle = tr("Microfone interno do aparelho", "Device built-in microphone"),
             selected = selectedId < 0,
             badge = null,
             onClick = { onSelect(null) }
@@ -661,13 +718,13 @@ private fun AudioInputSelector(
         }
         if (options.isEmpty()) {
             Text(
-                "Nenhuma entrada de áudio detectada.",
+                tr("Nenhuma entrada de áudio detectada.", "No audio input detected."),
                 color = TextMuted,
                 fontSize = 11.sp
             )
         }
         TextButton(onClick = onRefresh, modifier = Modifier.padding(top = 2.dp)) {
-            Text("Atualizar lista", color = Mint, fontSize = 12.sp)
+            Text(tr("Atualizar lista", "Refresh list"), color = Mint, fontSize = 12.sp)
         }
     }
 }

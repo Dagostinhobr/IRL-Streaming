@@ -47,6 +47,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.streamlink.i18n.L10n
+import app.streamlink.i18n.tr
 import app.streamlink.ui.StreamViewModel
 import app.streamlink.ui.components.ChoiceChips
 import app.streamlink.ui.components.SectionDivider
@@ -89,7 +91,7 @@ fun VdoNinjaScreen(
                 title = { Text("VDO.Ninja", fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Voltar", "Back"))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -108,9 +110,14 @@ fun VdoNinjaScreen(
         ) {
             item {
                 Text(
-                    "Crie uma sala e gere links de publicação/visualização. Você pode abrir o " +
-                        "estúdio P2P dentro do app (WebRTC no navegador) ou transmitir nativamente " +
-                        "via WHIP usando a câmera e o microfone do aparelho.",
+                    tr(
+                        "Crie uma sala e gere links de publicação/visualização. Você pode abrir o " +
+                            "estúdio P2P dentro do app (WebRTC no navegador) ou transmitir nativamente " +
+                            "via WHIP usando a câmera e o microfone do aparelho.",
+                        "Create a room and generate publish/view links. You can open the P2P " +
+                            "studio inside the app (WebRTC in the browser) or stream natively " +
+                            "via WHIP using the device camera and microphone."
+                    ),
                     color = TextMuted,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -118,10 +125,14 @@ fun VdoNinjaScreen(
             }
 
             item {
-                SettingsSection("Identificação") {
+                SettingsSection(tr("Identificação", "Identification")) {
                     Text(
-                        "Informe um ID de ligação para usar o padrão do VDO.Ninja " +
-                            "(?view=ID&p=senha) ou uma sala para agrupar convidados. O ID tem prioridade.",
+                        tr(
+                            "Informe um ID de ligação para usar o padrão do VDO.Ninja " +
+                                "(?view=ID&p=senha) ou uma sala para agrupar convidados. O ID tem prioridade.",
+                            "Provide a stream ID to use the VDO.Ninja pattern " +
+                                "(?view=ID&p=password) or a room to group guests. The ID takes priority."
+                        ),
                         color = TextMuted,
                         fontSize = 12.sp
                     )
@@ -133,11 +144,14 @@ fun VdoNinjaScreen(
                                 it.copy(streamId = value.filterNot(Char::isWhitespace))
                             }
                         },
-                        label = { Text("ID de ligação (opcional)") },
-                        placeholder = { Text("ex.: meu-stream-7f3a") },
+                        label = { Text(tr("ID de ligação (opcional)", "Stream ID (optional)")) },
+                        placeholder = { Text(tr("ex.: meu-stream-7f3a", "e.g. meu-stream-7f3a")) },
                         supportingText = {
                             Text(
-                                "Vira ?push=ID nos links de publicação e ?view=ID no player",
+                                tr(
+                                    "Vira ?push=ID nos links de publicação e ?view=ID no player",
+                                    "Becomes ?push=ID in publish links and ?view=ID in the player"
+                                ),
                                 fontSize = 10.sp
                             )
                         },
@@ -153,16 +167,16 @@ fun VdoNinjaScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(Modifier.width(6.dp))
-                            Text("Gerar novo ID", color = Mint, fontSize = 12.sp)
+                            Text(tr("Gerar novo ID", "Generate new ID"), color = Mint, fontSize = 12.sp)
                         }
                         TextButton(
                             onClick = {
                                 clipboard.setText(AnnotatedString(vdo.streamId))
-                                toast(context, "ID copiado")
+                                toast(context, L10n.t("ID copiado", "ID copied"))
                             },
                             enabled = vdo.streamId.isNotBlank()
                         ) {
-                            Text("Copiar ID", color = TextMuted, fontSize = 12.sp)
+                            Text(tr("Copiar ID", "Copy ID"), color = TextMuted, fontSize = 12.sp)
                         }
                     }
 
@@ -171,11 +185,14 @@ fun VdoNinjaScreen(
                         onValueChange = { value ->
                             viewModel.updateVdoNinja { it.copy(room = value.filterNot(Char::isWhitespace)) }
                         },
-                        label = { Text("Sala (opcional)") },
-                        placeholder = { Text("ex.: irl-casa-9f2") },
+                        label = { Text(tr("Sala (opcional)", "Room (optional)")) },
+                        placeholder = { Text(tr("ex.: irl-casa-9f2", "e.g. irl-home-9f2")) },
                         supportingText = {
                             Text(
-                                "Agrupa vários convidados quando não há ID de ligação",
+                                tr(
+                                    "Agrupa vários convidados quando não há ID de ligação",
+                                    "Groups several guests when there is no stream ID"
+                                ),
                                 fontSize = 10.sp
                             )
                         },
@@ -191,24 +208,24 @@ fun VdoNinjaScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(Modifier.width(6.dp))
-                            Text("Gerar nova sala", color = Mint, fontSize = 12.sp)
+                            Text(tr("Gerar nova sala", "Generate new room"), color = Mint, fontSize = 12.sp)
                         }
                         TextButton(
                             onClick = {
                                 clipboard.setText(AnnotatedString(vdo.room))
-                                toast(context, "Sala copiada")
+                                toast(context, L10n.t("Sala copiada", "Room copied"))
                             },
                             enabled = vdo.room.isNotBlank()
                         ) {
-                            Text("Copiar sala", color = TextMuted, fontSize = 12.sp)
+                            Text(tr("Copiar sala", "Copy room"), color = TextMuted, fontSize = 12.sp)
                         }
                     }
 
                     OutlinedTextField(
                         value = vdo.label,
                         onValueChange = { value -> viewModel.updateVdoNinja { it.copy(label = value) } },
-                        label = { Text("Nome exibido (opcional)") },
-                        placeholder = { Text("ex.: Câmera da rua") },
+                        label = { Text(tr("Nome exibido (opcional)", "Display name (optional)")) },
+                        placeholder = { Text(tr("ex.: Câmera da rua", "e.g. Street camera")) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -216,9 +233,15 @@ fun VdoNinjaScreen(
                     OutlinedTextField(
                         value = vdo.password,
                         onValueChange = { value -> viewModel.updateVdoNinja { it.copy(password = value) } },
-                        label = { Text("Senha (opcional)") },
+                        label = { Text(tr("Senha (opcional)", "Password (optional)")) },
                         supportingText = {
-                            Text("Usada como &password= ao publicar e &p= ao assistir", fontSize = 10.sp)
+                            Text(
+                                tr(
+                                    "Usada como &password= ao publicar e &p= ao assistir",
+                                    "Used as &password= when publishing and &p= when viewing"
+                                ),
+                                fontSize = 10.sp
+                            )
                         },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
@@ -228,7 +251,10 @@ fun VdoNinjaScreen(
                     if (effectiveId.isNotBlank()) {
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "Identificador usado nos links: $effectiveId",
+                            tr(
+                                "Identificador usado nos links: $effectiveId",
+                                "Identifier used in the links: $effectiveId"
+                            ),
                             color = Mint,
                             fontSize = 11.sp,
                             fontFamily = FontFamily.Monospace
@@ -242,7 +268,10 @@ fun VdoNinjaScreen(
                             if (parsed == null) {
                                 toast(
                                     context,
-                                    "Copie um link do VDO.Ninja (ex.: ?view=ID&p=senha)"
+                                    L10n.t(
+                                        "Copie um link do VDO.Ninja (ex.: ?view=ID&p=senha)",
+                                        "Copy a VDO.Ninja link (e.g. ?view=ID&p=password)"
+                                    )
                                 )
                             } else {
                                 viewModel.updateVdoNinja {
@@ -256,20 +285,23 @@ fun VdoNinjaScreen(
                                 }
                                 toast(
                                     context,
-                                    "Link importado: ${parsed.streamId.ifBlank { parsed.room }}"
+                                    L10n.t(
+                                        "Link importado: ${parsed.streamId.ifBlank { parsed.room }}",
+                                        "Link imported: ${parsed.streamId.ifBlank { parsed.room }}"
+                                    )
                                 )
                             }
                         },
                         modifier = Modifier.padding(top = 2.dp)
                     ) {
-                        Text("Colar link do VDO.Ninja e preencher", color = Mint, fontSize = 12.sp)
+                        Text(tr("Colar link do VDO.Ninja e preencher", "Paste VDO.Ninja link and fill in"), color = Mint, fontSize = 12.sp)
                     }
                 }
             }
 
             item {
-                SettingsSection("Qualidade do link P2P") {
-                    SettingLabel("Bitrate de vídeo")
+                SettingsSection(tr("Qualidade do link P2P", "P2P link quality")) {
+                    SettingLabel(tr("Bitrate de vídeo", "Video bitrate"))
                     ChoiceChips(
                         options = VDO_BITRATES,
                         selected = vdo.videoBitrateKbps,
@@ -277,7 +309,7 @@ fun VdoNinjaScreen(
                         onSelect = { value -> viewModel.updateVdoNinja { it.copy(videoBitrateKbps = value) } }
                     )
                     SectionDivider()
-                    SettingLabel("Bitrate de áudio")
+                    SettingLabel(tr("Bitrate de áudio", "Audio bitrate"))
                     ChoiceChips(
                         options = listOf(64, 128, 192),
                         selected = vdo.audioBitrateKbps,
@@ -286,35 +318,47 @@ fun VdoNinjaScreen(
                     )
                     SectionDivider()
                     SwitchSettingRow(
-                        title = "Estéreo",
+                        title = tr("Estéreo", "Stereo"),
                         checked = vdo.stereo,
                         onCheckedChange = { value -> viewModel.updateVdoNinja { it.copy(stereo = value) } }
                     )
                     SectionDivider()
                     SwitchSettingRow(
-                        title = "Iniciar automaticamente",
-                        subtitle = "O link já abre publicando, sem pedir confirmação",
+                        title = tr("Iniciar automaticamente", "Start automatically"),
+                        subtitle = tr(
+                            "O link já abre publicando, sem pedir confirmação",
+                            "The link opens already publishing, without asking for confirmation"
+                        ),
                         checked = vdo.autostart,
                         onCheckedChange = { value -> viewModel.updateVdoNinja { it.copy(autostart = value) } }
                     )
                     SectionDivider()
                     SwitchSettingRow(
-                        title = "Saída limpa",
-                        subtitle = "Esconde menus e botões do VDO.Ninja",
+                        title = tr("Saída limpa", "Clean output"),
+                        subtitle = tr(
+                            "Esconde menus e botões do VDO.Ninja",
+                            "Hides VDO.Ninja menus and buttons"
+                        ),
                         checked = vdo.cleanOutput,
                         onCheckedChange = { value -> viewModel.updateVdoNinja { it.copy(cleanOutput = value) } }
                     )
                     SectionDivider()
                     SwitchSettingRow(
-                        title = "Somente áudio",
-                        subtitle = "Publica apenas o microfone (útil para convidados)",
+                        title = tr("Somente áudio", "Audio only"),
+                        subtitle = tr(
+                            "Publica apenas o microfone (útil para convidados)",
+                            "Publishes only the microphone (useful for guests)"
+                        ),
                         checked = vdo.audioOnly,
                         onCheckedChange = { value -> viewModel.updateVdoNinja { it.copy(audioOnly = value) } }
                     )
                     SectionDivider()
                     SwitchSettingRow(
-                        title = "Forçar H.264",
-                        subtitle = "Melhor compatibilidade com OBS e WHIP",
+                        title = tr("Forçar H.264", "Force H.264"),
+                        subtitle = tr(
+                            "Melhor compatibilidade com OBS e WHIP",
+                            "Better compatibility with OBS and WHIP"
+                        ),
                         checked = vdo.forceH264,
                         onCheckedChange = { value -> viewModel.updateVdoNinja { it.copy(forceH264 = value) } }
                     )
@@ -322,15 +366,15 @@ fun VdoNinjaScreen(
             }
 
             item {
-                SettingsSection("Links P2P (navegador)") {
+                SettingsSection(tr("Links P2P (navegador)", "P2P links (browser)")) {
                     LinkBlock(
-                        title = "Publicar (celular/convidado)",
+                        title = tr("Publicar (celular/convidado)", "Publish (phone/guest)"),
                         url = pushUrl,
                         onCopy = {
                             clipboard.setText(AnnotatedString(pushUrl))
-                            toast(context, "Link de publicação copiado")
+                            toast(context, L10n.t("Link de publicação copiado", "Publish link copied"))
                         },
-                        onShare = { shareLink(context, "Publicar no VDO.Ninja", pushUrl) }
+                        onShare = { shareLink(context, L10n.t("Publicar no VDO.Ninja", "Publish on VDO.Ninja"), pushUrl) }
                     )
                     Spacer(Modifier.height(4.dp))
                     Button(
@@ -339,13 +383,19 @@ fun VdoNinjaScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Usar como destino (P2P)", fontSize = 13.sp)
+                        Text(tr("Usar como destino (P2P)", "Use as target (P2P)"), fontSize = 13.sp)
                     }
                     Text(
-                        "Ao tocar em transmitir, o app abre o estúdio WebRTC com este link. " +
-                            "O microfone do sistema é usado automaticamente (USB/fone têm " +
-                            "prioridade) — o VDO.Ninja não pede para selecionar de novo. " +
-                            "Este destino não usa WHIP.",
+                        tr(
+                            "Ao tocar em transmitir, o app abre o estúdio WebRTC com este link. " +
+                                "O microfone do sistema é usado automaticamente (USB/fone têm " +
+                                "prioridade) — o VDO.Ninja não pede para selecionar de novo. " +
+                                "Este destino não usa WHIP.",
+                            "When you tap stream, the app opens the WebRTC studio with this link. " +
+                                "The system microphone is used automatically (USB/headset have " +
+                                "priority) — VDO.Ninja does not ask you to select it again. " +
+                                "This target does not use WHIP."
+                        ),
                         color = TextMuted,
                         fontSize = 11.sp,
                         modifier = Modifier.padding(top = 4.dp)
@@ -358,30 +408,35 @@ fun VdoNinjaScreen(
                         ) {
                             Icon(Icons.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Abrir estúdio", fontSize = 12.sp)
+                            Text(tr("Abrir estúdio", "Open studio"), fontSize = 12.sp)
                         }
                         OutlinedButton(
                             onClick = { onOpenWeb(viewUrl) },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Abrir player", fontSize = 12.sp)
+                            Text(tr("Abrir player", "Open player"), fontSize = 12.sp)
                         }
                     }
 
                     SectionDivider()
                     LinkBlock(
-                        title = "Assistir",
+                        title = tr("Assistir", "Watch"),
                         url = viewUrl,
                         onCopy = {
                             clipboard.setText(AnnotatedString(viewUrl))
-                            toast(context, "Link de visualização copiado")
+                            toast(context, L10n.t("Link de visualização copiado", "View link copied"))
                         },
-                        onShare = { shareLink(context, "Assistir no VDO.Ninja", viewUrl) }
+                        onShare = { shareLink(context, L10n.t("Assistir no VDO.Ninja", "Watch on VDO.Ninja"), viewUrl) }
                     )
                     Text(
-                        "Dica: o estúdio no app usa WebRTC (P2P) direto do navegador interno. " +
-                            "Para usar microfone USB nele, conecte o dispositivo antes de abrir — o " +
-                            "Android o utiliza como entrada padrão.",
+                        tr(
+                            "Dica: o estúdio no app usa WebRTC (P2P) direto do navegador interno. " +
+                                "Para usar microfone USB nele, conecte o dispositivo antes de abrir — o " +
+                                "Android o utiliza como entrada padrão.",
+                            "Tip: the in-app studio uses WebRTC (P2P) directly in the built-in browser. " +
+                                "To use a USB microphone there, connect the device before opening — " +
+                                "Android uses it as the default input."
+                        ),
                         color = TextMuted,
                         fontSize = 11.sp,
                         modifier = Modifier.padding(top = 8.dp)
@@ -390,18 +445,27 @@ fun VdoNinjaScreen(
             }
 
             item {
-                SettingsSection("Publicação nativa via WHIP (experimental)") {
+                SettingsSection(tr("Publicação nativa via WHIP (experimental)", "Native WHIP publishing (experimental)")) {
                     Text(
-                        "Usa a câmera e o microfone selecionado no app, com a mesma qualidade da " +
-                            "transmissão RTMP. O token é o identificador do seu stream no VDO.Ninja " +
-                            "(por padrão, o ID de ligação ou o nome da sala).",
+                        tr(
+                            "Usa a câmera e o microfone selecionado no app, com a mesma qualidade da " +
+                                "transmissão RTMP. O token é o identificador do seu stream no VDO.Ninja " +
+                                "(por padrão, o ID de ligação ou o nome da sala).",
+                            "Uses the camera and microphone selected in the app, with the same quality " +
+                                "as the RTMP stream. The token is your stream identifier on VDO.Ninja " +
+                                "(by default, the stream ID or the room name)."
+                        ),
                         color = TextMuted,
                         fontSize = 12.sp
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "⚠️ O WHIP do VDO.Ninja é experimental e pode ficar indisponível. " +
-                            "Para transmitir agora, use o estúdio P2P acima — ele já funciona.",
+                        tr(
+                            "⚠️ O WHIP do VDO.Ninja é experimental e pode ficar indisponível. " +
+                                "Para transmitir agora, use o estúdio P2P acima — ele já funciona.",
+                            "⚠️ VDO.Ninja WHIP is experimental and may be unavailable. " +
+                                "To stream right now, use the P2P studio above — it already works."
+                        ),
                         color = Warn,
                         fontSize = 11.sp
                     )
@@ -409,14 +473,14 @@ fun VdoNinjaScreen(
                     OutlinedTextField(
                         value = vdo.whipToken,
                         onValueChange = { value -> viewModel.updateVdoNinja { it.copy(whipToken = value.trim()) } },
-                        label = { Text("Token WHIP (opcional)") },
+                        label = { Text(tr("Token WHIP (opcional)", "WHIP token (optional)")) },
                         placeholder = { Text(VdoNinja.pushId(vdo)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Endpoint: $whipEndpoint",
+                        tr("Endpoint: $whipEndpoint", "Endpoint: $whipEndpoint"),
                         color = Mint,
                         fontSize = 10.sp,
                         fontFamily = FontFamily.Monospace,
@@ -430,19 +494,23 @@ fun VdoNinjaScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Usar como destino WHIP (experimental)")
+                        Text(tr("Usar como destino WHIP (experimental)", "Use as WHIP target (experimental)"))
                     }
                     TextButton(
                         onClick = {
                             clipboard.setText(AnnotatedString(whipViewUrl))
-                            toast(context, "Link WHIP (OBS) copiado")
+                            toast(context, L10n.t("Link WHIP (OBS) copiado", "WHIP (OBS) link copied"))
                         }
                     ) {
-                        Text("Copiar link para assistir no OBS", color = Mint, fontSize = 12.sp)
+                        Text(tr("Copiar link para assistir no OBS", "Copy link to watch in OBS"), color = Mint, fontSize = 12.sp)
                     }
                     Text(
-                        "No OBS, adicione uma fonte de navegador com o link acima, ou use " +
-                            "“WHIP” com o endpoint ao lado.",
+                        tr(
+                            "No OBS, adicione uma fonte de navegador com o link acima, ou use " +
+                                "“WHIP” com o endpoint ao lado.",
+                            "In OBS, add a browser source with the link above, or use " +
+                                "“WHIP” with the endpoint shown."
+                        ),
                         color = TextMuted,
                         fontSize = 11.sp
                     )
@@ -475,10 +543,10 @@ private fun LinkBlock(
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = onCopy) {
-                Icon(Icons.Filled.ContentCopy, contentDescription = "Copiar link", tint = TextPrimary)
+                Icon(Icons.Filled.ContentCopy, contentDescription = tr("Copiar link", "Copy link"), tint = TextPrimary)
             }
             IconButton(onClick = onShare) {
-                Icon(Icons.Filled.Share, contentDescription = "Compartilhar link", tint = TextPrimary)
+                Icon(Icons.Filled.Share, contentDescription = tr("Compartilhar link", "Share link"), tint = TextPrimary)
             }
         }
     }

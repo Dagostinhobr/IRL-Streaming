@@ -111,7 +111,7 @@ fun SectionDivider() {
 fun <T> ChoiceChips(
     options: List<T>,
     selected: T,
-    label: (T) -> String,
+    label: @Composable (T) -> String,
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier
 ) {

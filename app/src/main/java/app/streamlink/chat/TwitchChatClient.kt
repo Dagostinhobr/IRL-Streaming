@@ -1,5 +1,6 @@
 package app.streamlink.chat
 
+import app.streamlink.i18n.L10n
 import app.streamlink.data.ChatSettings
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -12,12 +13,19 @@ import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 /**
- * Cliente de chat da Twitch via IRC sobre WebSocket.
+ * PT: Cliente de chat da Twitch via IRC sobre WebSocket.
  *
- * - Leitura anônima: não precisa de token (NICK justinfanNNNN).
- * - Envio/moderação: informe usuário + token OAuth (chat:read chat:edit).
+ * PT: - Leitura anônima: não precisa de token (NICK justinfanNNNN).
+ * PT: - Envio/moderação: informe usuário + token OAuth (chat:read chat:edit).
  *
- * Referência: https://dev.twitch.tv/docs/chat/irc/
+ * PT: Referência: https://dev.twitch.tv/docs/chat/irc/
+ *
+ * EN: Twitch chat client via IRC over WebSocket.
+ *
+ * EN: - Anonymous reading: no token needed (NICK justinfanNNNN).
+ * EN: - Sending/moderation: provide username + OAuth token (chat:read chat:edit).
+ *
+ * EN: Reference: https://dev.twitch.tv/docs/chat/irc/
  */
 class TwitchChatClient(
     private val settings: ChatSettings,
@@ -93,7 +101,9 @@ class TwitchChatClient(
         if (line.startsWith(":tmi.twitch.tv NOTICE")) {
             val text = line.substringAfter(" :", "")
             if (text.contains("authentication failed", true) || text.contains("login unsuccessful", true)) {
-                listener.onSystemMessage("Falha no login da Twitch: $text")
+                listener.onSystemMessage(
+                    L10n.t("Falha no login da Twitch: $text", "Twitch login failed: $text")
+                )
             }
             return
         }

@@ -12,15 +12,25 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 /**
- * Microfone do RootEncoder com medição de nível para o VU meter.
+ * PT: Microfone do RootEncoder com medição de nível para o VU meter.
  *
- * O [MicrophoneSource] original não expõe a amplitude do PCM, por isso esta
- * classe embrulha o microfone, mede cada bloco em [inputPCMData] e repassa o
- * frame intacto para o encoder — o áudio transmitido não é alterado.
+ * PT: O [MicrophoneSource] original não expõe a amplitude do PCM, por isso esta
+ * PT: classe embrulha o microfone, mede cada bloco em [inputPCMData] e repassa o
+ * PT: frame intacto para o encoder — o áudio transmitido não é alterado.
  *
- * O monitoramento pode começar antes da transmissão (durante o preview), para
- * que o medidor funcione no ecrã principal sem estar no ar. Quando o encoder
- * chama [start], apenas ligamos o callback; o `AudioRecord` não é recriado.
+ * PT: O monitoramento pode começar antes da transmissão (durante o preview), para
+ * PT: que o medidor funcione no ecrã principal sem estar no ar. Quando o encoder
+ * PT: chama [start], apenas ligamos o callback; o `AudioRecord` não é recriado.
+ *
+ * EN: RootEncoder microphone with level measurement for the VU meter.
+ *
+ * EN: The original [MicrophoneSource] does not expose the PCM amplitude, so this
+ * EN: class wraps the microphone, measures each block in [inputPCMData] and passes the
+ * EN: frame through intact to the encoder — the transmitted audio is not changed.
+ *
+ * EN: Monitoring can start before streaming (during preview), so
+ * EN: the meter works on the main screen while not on air. When the encoder
+ * EN: calls [start], we only attach the callback; the `AudioRecord` is not recreated.
  */
 class MeteredMicrophoneSource(
     audioSource: Int = MediaRecorder.AudioSource.DEFAULT
@@ -28,18 +38,28 @@ class MeteredMicrophoneSource(
 
     private val microphone = MicrophoneSource(audioSource)
 
-    /** Maior nível (0..1) observado desde a última leitura pela interface. */
+    /**
+     * PT: Maior nível (0..1) observado desde a última leitura pela interface.
+     * EN: Highest level (0..1) observed since the last read by the UI.
+     */
     @Volatile
     private var peakSinceRead: Float = 0f
 
-    /** RMS do último bloco, usado apenas como fallback de leitura. */
+    /**
+     * PT: RMS do último bloco, usado apenas como fallback de leitura.
+     * EN: RMS of the last block, used only as a read fallback.
+     */
     @Volatile
     private var lastRms: Float = 0f
 
     /**
-     * Prepara o `AudioRecord` com os parâmetros do encoder. Se o microfone já
-     * estiver em execução (monitoramento do preview), ele é liberado antes de
-     * recriar, evitando dois `AudioRecord` simultâneos.
+     * PT: Prepara o `AudioRecord` com os parâmetros do encoder. Se o microfone já
+     * PT: estiver em execução (monitoramento do preview), ele é liberado antes de
+     * PT: recriar, evitando dois `AudioRecord` simultâneos.
+     *
+     * EN: Prepares the `AudioRecord` with the encoder parameters. If the microphone is
+     * EN: already running (preview monitoring), it is released before
+     * EN: recreating, avoiding two simultaneous `AudioRecord` instances.
      */
     override fun create(
         sampleRate: Int,
@@ -59,16 +79,22 @@ class MeteredMicrophoneSource(
     }
 
     /**
-     * Liga a captura para alimentar o VU meter mesmo sem transmissão ativa.
-     * O encoder só recebe os frames depois que [start] define o callback.
+     * PT: Liga a captura para alimentar o VU meter mesmo sem transmissão ativa.
+     * PT: O encoder só recebe os frames depois que [start] define o callback.
+     *
+     * EN: Starts capture to feed the VU meter even without an active stream.
+     * EN: The encoder only receives frames after [start] sets the callback.
      */
     fun startMonitoring() {
         startCapture()
     }
 
     /**
-     * O encoder parou de consumir áudio (fim da transmissão/gravação), mas o
-     * medidor continua a funcionar no preview: apenas soltamos o callback.
+     * PT: O encoder parou de consumir áudio (fim da transmissão/gravação), mas o
+     * PT: medidor continua a funcionar no preview: apenas soltamos o callback.
+     *
+     * EN: The encoder stopped consuming audio (end of stream/recording), but the
+     * EN: meter keeps working in preview: we only detach the callback.
      */
     override fun stop() {
         getMicrophoneData = null
@@ -76,7 +102,10 @@ class MeteredMicrophoneSource(
         lastRms = 0f
     }
 
-    /** Encerra a captura de facto (release do encoder / saída da tela). */
+    /**
+     * PT: Encerra a captura de facto (release do encoder / saída da tela).
+     * EN: Actually stops capture (encoder release / leaving the screen).
+     */
     fun stopMonitoring() {
         getMicrophoneData = null
         peakSinceRead = 0f
@@ -99,7 +128,10 @@ class MeteredMicrophoneSource(
         getMicrophoneData?.inputPCMData(frame)
     }
 
-    /** Devolve o pico desde a última chamada e zera os acumuladores. */
+    /**
+     * PT: Devolve o pico desde a última chamada e zera os acumuladores.
+     * EN: Returns the peak since the last call and resets the accumulators.
+     */
     fun consumePeak(): Float {
         val value = maxOf(peakSinceRead, lastRms)
         peakSinceRead = 0f
@@ -131,8 +163,11 @@ class MeteredMicrophoneSource(
     }
 
     /**
-     * PCM de 16 bits little-endian. Calcula pico e RMS normalizados (0..1).
-     * O pico dá resposta imediata; o RMS evita que o medidor fique "colado".
+     * PT: PCM de 16 bits little-endian. Calcula pico e RMS normalizados (0..1).
+     * PT: O pico dá resposta imediata; o RMS evita que o medidor fique "colado".
+     *
+     * EN: 16-bit little-endian PCM. Computes normalized peak and RMS (0..1).
+     * EN: The peak gives an immediate response; the RMS keeps the meter from getting "stuck".
      */
     private fun measure(frame: Frame) {
         val buffer = frame.buffer

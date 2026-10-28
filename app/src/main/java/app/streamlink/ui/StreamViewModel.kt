@@ -20,6 +20,7 @@ import app.streamlink.data.ChatProvider
 import app.streamlink.data.SettingsRepository
 import app.streamlink.data.StreamTarget
 import app.streamlink.data.TargetKind
+import app.streamlink.i18n.L10n
 import app.streamlink.stream.StreamEngine
 import app.streamlink.stream.StreamService
 import app.streamlink.stream.StreamStatus
@@ -59,11 +60,17 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     val stream = engine.state
 
     /**
-     * Nível do microfone (0..1) para o VU meter da tela principal.
+     * PT: Nível do microfone (0..1) para o VU meter da tela principal.
      *
-     * Na transmissão nativa vem do encoder; no estúdio P2P vem do
-     * `AnalyserNode` do WebView, para o medidor continuar a funcionar enquanto
-     * o VDO.Ninja é dono do microfone.
+     * PT: Na transmissão nativa vem do encoder; no estúdio P2P vem do
+     * PT: `AnalyserNode` do WebView, para o medidor continuar a funcionar enquanto
+     * PT: o VDO.Ninja é dono do microfone.
+     *
+     * EN: Microphone level (0..1) for the main screen's VU meter.
+     *
+     * EN: In native streaming it comes from the encoder; in the P2P studio it comes
+     * EN: from the WebView's `AnalyserNode`, so the meter keeps working while
+     * EN: VDO.Ninja owns the microphone.
      */
     private val _micLevel = MutableStateFlow(0f)
     val micLevel = _micLevel.asStateFlow()
@@ -79,18 +86,25 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     private val _cameras = MutableStateFlow<List<CameraCapabilities.CameraInfo>>(emptyList())
     val cameras = _cameras.asStateFlow()
 
-    /** Câmeras nativas + USB para escolher a câmera principal. */
+    /**
+     * PT: Câmeras nativas + USB para escolher a câmera principal.
+     * EN: Native + USB cameras for choosing the main camera.
+     */
     private val _cameraOptions = MutableStateFlow<List<CameraCapabilities.CameraInfo>>(emptyList())
     val cameraOptions = _cameraOptions.asStateFlow()
 
     private val _dualCameraSupported = MutableStateFlow(false)
     val dualCameraSupported = _dualCameraSupported.asStateFlow()
 
-    /** URL do estúdio P2P que a interface deve abrir (consumida uma vez). */
+    /**
+     * PT: URL do estúdio P2P que a interface deve abrir (consumida uma vez).
+     * EN: URL of the P2P studio the UI should open (consumed once).
+     */
     private val _studioUrl = MutableStateFlow<String?>(null)
     val studioUrl = _studioUrl.asStateFlow()
 
-    // Estúdio P2P incorporado: a Home continua visível e controla o WebView.
+    // PT: Estúdio P2P incorporado: a Home continua visível e controla o WebView.
+    // EN: Embedded P2P studio: Home stays visible and controls the WebView.
     private val _vdoLive = MutableStateFlow(false)
     val vdoLive = _vdoLive.asStateFlow()
 
@@ -140,13 +154,21 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
             refreshAudioDevices()
             if (attached) {
                 val usb = CameraCapabilities.usbCameras(getApplication()).firstOrNull()
-                if (usb != null) _events.tryEmit("${usb.label} detetada: ${usb.detail}")
+                if (usb != null) _events.tryEmit(
+                    L10n.t(
+                        "${usb.label} detetada: ${usb.detail}",
+                        "${usb.label} detected: ${usb.detail}"
+                    )
+                )
             }
         }
     }
 
     init {
         val app = getApplication<Application>()
+        // PT: Aplica o idioma guardado antes de gerar rótulos/mensagens.
+        // EN: Applies the saved language before generating labels/messages.
+        L10n.update(settings.value.language)
         runCatching {
             val audio = app.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
             audio?.registerAudioDeviceCallback(audioDeviceCallback, null)
@@ -159,8 +181,10 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
                     addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
                     addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
                 },
-                // As ações USB são broadcasts protegidos do sistema; o receiver
-                // apenas atualiza as listas locais de câmera/áudio.
+                // PT: As ações USB são broadcasts protegidos do sistema; o receiver
+                // PT: apenas atualiza as listas locais de câmera/áudio.
+                // EN: USB actions are system-protected broadcasts; the receiver
+                // EN: only refreshes the local camera/audio lists.
                 ContextCompat.RECEIVER_EXPORTED
             )
         }
@@ -175,7 +199,8 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     // ---------------------------------------------------------------------
-    // Permissões / preview
+    // PT: Permissões / preview
+    // EN: Permissions / preview
     // ---------------------------------------------------------------------
 
     fun updatePermissions(granted: Boolean) {
@@ -185,8 +210,10 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     fun onPreviewReady(view: SurfaceView) {
         previewSurface = view
         if (!_permissionsGranted.value) return
-        // Durante o estúdio P2P a câmera pertence ao WebView. O preview nativo
-        // é reanexado automaticamente quando a transmissão termina.
+        // PT: Durante o estúdio P2P a câmera pertence ao WebView. O preview nativo
+        // PT: é reanexado automaticamente quando a transmissão termina.
+        // EN: During the P2P studio the camera belongs to the WebView. The native
+        // EN: preview is automatically reattached when the stream ends.
         if (_vdoLive.value) return
         engine.attachPreview(view, resolved(settings.value))
     }
@@ -196,14 +223,17 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     )
 
     /**
-     * A tela principal avisa quando o sensor muda de orientação. No modo
-     * automático, o encoder acompanha o dispositivo (vertical/horizontal).
+     * PT: A tela principal avisa quando o sensor muda de orientação. No modo
+     * PT: automático, o encoder acompanha o dispositivo (vertical/horizontal).
+     *
+     * EN: The main screen reports when the sensor changes orientation. In
+     * EN: automatic mode, the encoder follows the device (portrait/landscape).
      */
     fun onDeviceOrientationChanged(landscape: Boolean) {
         deviceLandscape.value = landscape
         val current = settings.value
         if (current.orientation != app.streamlink.data.VideoOrientation.AUTO) return
-        if (_vdoLive.value) return // O WebView/VDO.Ninja já acompanha o sensor.
+        if (_vdoLive.value) return // PT: O WebView/VDO.Ninja já acompanha o sensor. / EN: The WebView/VDO.Ninja already follows the sensor.
         val orientation = OrientationSupport.resolve(current.orientation, landscape)
         if (engine.state.value.isLive || engine.state.value.isBusy) {
             engine.applyLiveOrientation(orientation)
@@ -212,10 +242,14 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    /** Alterna Auto (sensor) → Vertical → Horizontal no botão da Home. */
+    /**
+     * PT: Alterna Auto (sensor) → Vertical → Horizontal no botão da Home.
+     * EN: Cycles Auto (sensor) → Portrait → Landscape on the Home button.
+     */
     fun cycleOrientation() {
         val next = OrientationSupport.next(settings.value.orientation)
-        // A mudança de orientação não mostra aviso: o vídeo/UI já reflete o novo modo.
+        // PT: A mudança de orientação não mostra aviso: o vídeo/UI já reflete o novo modo.
+        // EN: Orientation changes show no notice: the video/UI already reflects the new mode.
         updateSettings { it.copy(orientation = next) }
     }
 
@@ -238,7 +272,10 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    /** Troca a câmera principal com a da janela PiP. */
+    /**
+     * PT: Troca a câmera principal com a da janela PiP.
+     * EN: Swaps the main camera with the PiP window camera.
+     */
     fun swapDualCameras() {
         val dual = settings.value.dualCamera
         val pair = CameraCapabilities.resolvePair(
@@ -276,7 +313,8 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     // ---------------------------------------------------------------------
-    // Callbacks do estúdio incorporado (WebView)
+    // PT: Callbacks do estúdio incorporado (WebView)
+    // EN: Embedded studio callbacks (WebView)
     // ---------------------------------------------------------------------
 
     fun onWebMicLevel(linear: Float) {
@@ -295,22 +333,27 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         _vdoRecording.value = true
         _vdoRecordPath.value = path.ifBlank { null }
         val format = if (path.endsWith(".webm", ignoreCase = true)) "WebM" else "MP4"
-        _events.tryEmit("Gravando transmissão em $format")
+        _events.tryEmit(L10n.t("Gravando transmissão em $format", "Recording stream as $format"))
     }
 
     fun onWebRecordingStopped(path: String?) {
         _vdoRecording.value = false
         _vdoRecordPath.value = path
         if (!path.isNullOrBlank()) {
-            _events.tryEmit("Gravação salva em $path")
+            _events.tryEmit(L10n.t("Gravação salva em $path", "Recording saved to $path"))
         } else {
-            _events.tryEmit("A gravação terminou, mas o ficheiro ficou vazio.")
+            _events.tryEmit(
+                L10n.t(
+                    "A gravação terminou, mas o ficheiro ficou vazio.",
+                    "Recording finished, but the file is empty."
+                )
+            )
         }
     }
 
     fun onWebRecordingError(message: String) {
         _vdoRecording.value = false
-        _events.tryEmit("Não foi possível gravar: $message")
+        _events.tryEmit(L10n.t("Não foi possível gravar: $message", "Could not record: $message"))
     }
 
     fun onWebTorchState(on: Boolean) {
@@ -321,39 +364,52 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         val on = _vdoTorchOn.value
         val ok = torchController.setTorch(on)
         _vdoTorchOn.value = if (ok) on else false
-        if (!ok) _events.tryEmit("Lanterna indisponível nesta câmera.")
+        if (!ok) _events.tryEmit(L10n.t("Lanterna indisponível nesta câmera.", "Torch unavailable on this camera."))
     }
 
     fun clearError() = engine.clearError()
 
     // ---------------------------------------------------------------------
-    // Transmissão
+    // PT: Transmissão
+    // EN: Streaming
     // ---------------------------------------------------------------------
 
     fun startStream() {
         if (!_permissionsGranted.value) {
-            _events.tryEmit("Conceda acesso à câmera e ao microfone para iniciar.")
+            _events.tryEmit(
+                L10n.t(
+                    "Conceda acesso à câmera e ao microfone para iniciar.",
+                    "Grant camera and microphone access to start."
+                )
+            )
             return
         }
         val current = settings.value
         val target = current.selectedTarget()
         if (target == null) {
-            _events.tryEmit("Adicione um destino antes de transmitir.")
+            _events.tryEmit(L10n.t("Adicione um destino antes de transmitir.", "Add a target before streaming."))
             return
         }
         if (target.kind == TargetKind.VDO_P2P) {
             val vdo = current.vdoNinja
             if (VdoNinja.pushId(vdo).isBlank()) {
-                _events.tryEmit("Informe o ID de ligação ou a sala do VDO.Ninja.")
+                _events.tryEmit(L10n.t("Informe o ID de ligação ou a sala do VDO.Ninja.", "Provide the VDO.Ninja stream ID or room."))
                 return
             }
-            // O estúdio WebRTC corre embutido por baixo da Home, sem navegar
-            // para outra tela. Assim os controles do app continuam disponíveis.
+            // PT: O estúdio WebRTC corre embutido por baixo da Home, sem navegar
+            // PT: para outra tela. Assim os controles do app continuam disponíveis.
+            // EN: The WebRTC studio runs embedded beneath Home, without navigating
+            // EN: to another screen. This keeps the app controls available.
             startVdo(vdo)
             return
         }
         if (target.endpoint().isBlank()) {
-            _events.tryEmit("Configure a URL e a chave do destino \"${target.name}\".")
+            _events.tryEmit(
+                L10n.t(
+                    "Configure a URL e a chave do destino \"${target.name}\"." ,
+                    "Set the URL and key for the target \"${target.name}\"."
+                )
+            )
             return
         }
 
@@ -378,7 +434,8 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun startVdo(vdo: app.streamlink.data.VdoNinjaSettings) {
         if (_vdoLive.value) return
-        // Liberta câmera e microfone nativos antes de o WebView pedir getUserMedia.
+        // PT: Liberta câmera e microfone nativos antes de o WebView pedir getUserMedia.
+        // EN: Releases the native camera and microphone before the WebView requests getUserMedia.
         engine.pausePreview()
         AudioRouting.clearPreferredInput(getApplication())
         _micLevel.value = 0f
@@ -395,13 +452,22 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         if (current.chat.provider == ChatProvider.TWITCH && current.chat.channel.isNotBlank()) {
             chatManager.connect(current.chat)
         }
-        _events.tryEmit("Transmissão P2P iniciada. O estúdio corre em segundo plano.")
+        _events.tryEmit(
+            L10n.t(
+                "Transmissão P2P iniciada. O estúdio corre em segundo plano.",
+                "P2P stream started. The studio runs in the background."
+            )
+        )
     }
 
     /**
-     * Encerra o estúdio P2P e devolve a Home ao preview nativo. Se houver
-     * gravação em curso, dá tempo ao MediaRecorder de escrever o último bloco
-     * antes de destruir o WebView.
+     * PT: Encerra o estúdio P2P e devolve a Home ao preview nativo. Se houver
+     * PT: gravação em curso, dá tempo ao MediaRecorder de escrever o último bloco
+     * PT: antes de destruir o WebView.
+     *
+     * EN: Ends the P2P studio and returns Home to the native preview. If a
+     * EN: recording is in progress, it gives the MediaRecorder time to write the
+     * EN: last chunk before destroying the WebView.
      */
     fun stopVdo() {
         if (!_vdoLive.value) return
@@ -425,8 +491,10 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
             chatManager.disconnect()
             stopStreamService()
 
-            // O WebView é removido nesta composição; espera que ele liberte a
-            // câmera antes de reanexar o preview nativo.
+            // PT: O WebView é removido nesta composição; espera que ele liberte a
+            // PT: câmera antes de reanexar o preview nativo.
+            // EN: The WebView is removed in this composition; waits for it to
+            // EN: release the camera before reattaching the native preview.
             delay(900)
             previewSurface?.let { surface ->
                 if (!_vdoLive.value) {
@@ -447,14 +515,20 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         }
         if (engine.state.value.recording) {
             engine.stopRecording()
-            _events.tryEmit("Gravação salva em ${engine.state.value.recordPath ?: "armazenamento do app"}")
+            _events.tryEmit(
+                L10n.t(
+                    "Gravação salva em ${engine.state.value.recordPath ?: "armazenamento do app"}",
+                    "Recording saved to ${engine.state.value.recordPath ?: "app storage"}"
+                )
+            )
         } else if (engine.startRecording()) {
-            _events.tryEmit("Gravando transmissão em MP4")
+            _events.tryEmit(L10n.t("Gravando transmissão em MP4", "Recording stream as MP4"))
         }
     }
 
     // ---------------------------------------------------------------------
-    // Configurações / destinos
+    // PT: Configurações / destinos
+    // EN: Settings / targets
     // ---------------------------------------------------------------------
 
     fun updateSettings(transform: (AppSettings) -> AppSettings) {
@@ -478,7 +552,8 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         if (before.chat != after.chat) {
             chatReconnectJob?.cancel()
             chatReconnectJob = viewModelScope.launch {
-                // Debounce: evita reconectar a cada caractere digitado no canal/token.
+                // PT: Debounce: evita reconectar a cada caractere digitado no canal/token.
+                // EN: Debounce: avoids reconnecting on every character typed in the channel/token.
                 delay(1_200)
                 val chat = repository.settings.value.chat
                 val shouldConnect = chat.provider == ChatProvider.TWITCH &&
@@ -511,18 +586,40 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
             before.sampleRate != after.sampleRate ||
             before.stereo != after.stereo
         if (encoderChanged) {
-            _events.tryEmit("Resolução/FPS/codec só mudam na próxima transmissão.")
+            _events.tryEmit(
+                L10n.t(
+                    "Resolução/FPS/codec só mudam na próxima transmissão.",
+                    "Resolution/FPS/codec only change on the next stream."
+                )
+            )
         }
         if (before.cameraId != after.cameraId) {
-            _events.tryEmit("Câmera principal só muda na próxima transmissão.")
+            _events.tryEmit(
+                L10n.t(
+                    "Câmera principal só muda na próxima transmissão.",
+                    "The main camera only changes on the next stream."
+                )
+            )
+        }
+        if (before.language != after.language) {
+            // PT: Atualiza já o tradutor não-Compose e reconstrói os rótulos de
+            // câmeras/áudio no idioma escolhido, sem esperar pela recomposição.
+            // EN: Updates the non-Compose translator immediately and rebuilds the
+            // camera/audio labels in the chosen language without waiting for recomposition.
+            L10n.update(after.language)
+            refreshCameras()
+            refreshAudioDevices()
         }
     }
 
     fun selectTarget(id: String) = repository.update { it.copy(selectedTargetId = id) }
 
     /**
-     * Atualiza a lista de microfones disponíveis. Deve ser chamada ao abrir os ajustes
-     * (e quando um dispositivo USB é conectado/removido).
+     * PT: Atualiza a lista de microfones disponíveis. Deve ser chamada ao abrir os ajustes
+     * PT: (e quando um dispositivo USB é conectado/removido).
+     *
+     * EN: Refreshes the list of available microphones. Should be called when opening
+     * EN: settings (and when a USB device is connected/removed).
      */
     fun refreshAudioDevices() {
         val devices = AudioDevices.list(getApplication())
@@ -531,7 +628,8 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         val usb = devices.firstOrNull { it.isUsb }
         val currentExists = devices.any { it.id == current.audioInputId }
         if (current.audioInputId >= 0 && !currentExists) {
-            // O microfone escolhido foi removido: volta ao USB disponível ou ao interno.
+            // PT: O microfone escolhido foi removido: volta ao USB disponível ou ao interno.
+            // EN: The chosen microphone was removed: falls back to the available USB or the built-in one.
             updateSettings {
                 it.copy(
                     audioInputId = usb?.id ?: -1,
@@ -539,14 +637,18 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
                 )
             }
         } else if (current.audioInputId < 0 && usb != null) {
-            // Entrada automática: se a câmera USB tem microfone, usa-o já.
+            // PT: Entrada automática: se a câmera USB tem microfone, usa-o já.
+            // EN: Automatic input: if the USB camera has a microphone, uses it right away.
             updateSettings {
                 it.copy(audioInputId = usb.id, audioInputLabel = usb.detail)
             }
         }
     }
 
-    /** Seleciona um microfone específico; null volta para o microfone interno. */
+    /**
+     * PT: Seleciona um microfone específico; null volta para o microfone interno.
+     * EN: Selects a specific microphone; null goes back to the built-in microphone.
+     */
     fun selectAudioInput(option: AudioInputOption?) {
         updateSettings {
             it.copy(
@@ -558,17 +660,22 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     // ---------------------------------------------------------------------
-    // PiP com duas câmeras
+    // PT: PiP com duas câmeras
+    // EN: PiP with two cameras
     // ---------------------------------------------------------------------
 
-    /** Recarrega a lista de câmeras e a capacidade de duas câmeras simultâneas. */
+    /**
+     * PT: Recarrega a lista de câmeras e a capacidade de duas câmeras simultâneas.
+     * EN: Reloads the camera list and the two-simultaneous-cameras capability.
+     */
     fun refreshCameras() {
         val app = getApplication<Application>()
         _cameras.value = CameraCapabilities.cameras(app)
         _cameraOptions.value = CameraCapabilities.selectableCameras(app)
         _dualCameraSupported.value = CameraCapabilities.supportsDualCamera(app)
 
-        // Se a câmera USB escolhida acabou de ser ligada, prepara-a já (fora de live).
+        // PT: Se a câmera USB escolhida acabou de ser ligada, prepara-a já (fora de live).
+        // EN: If the chosen USB camera was just plugged in, prepares it right away (while not live).
         val current = settings.value
         if (CameraCapabilities.isUsbCameraId(current.cameraId) &&
             !engine.state.value.isLive &&
@@ -578,7 +685,10 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    /** Define a câmera principal; câmeras USB aparecem como `usb:<deviceName>`. */
+    /**
+     * PT: Define a câmera principal; câmeras USB aparecem como `usb:<deviceName>`.
+     * EN: Sets the main camera; USB cameras appear as `usb:<deviceName>`.
+     */
     fun selectCamera(camera: CameraCapabilities.CameraInfo) {
         updateSettings {
             it.copy(cameraId = camera.id, cameraLabel = camera.detail)
@@ -596,7 +706,8 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     // ---------------------------------------------------------------------
-    // VDO.Ninja
+    // PT: VDO.Ninja
+    // EN: VDO.Ninja
     // ---------------------------------------------------------------------
 
     fun updateVdoNinja(transform: (app.streamlink.data.VdoNinjaSettings) -> app.streamlink.data.VdoNinjaSettings) {
@@ -607,26 +718,39 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         updateVdoNinja { it.copy(room = VdoNinja.newRoom(), whipToken = "") }
     }
 
-    /** Gera um ID de ligação aleatório (Stream ID do VDO.Ninja). */
+    /**
+     * PT: Gera um ID de ligação aleatório (Stream ID do VDO.Ninja).
+     * EN: Generates a random connection ID (VDO.Ninja Stream ID).
+     */
     fun regenerateVdoNinjaId() {
         updateVdoNinja { it.copy(streamId = VdoNinja.newRoom(), whipToken = "") }
     }
 
-    /** Consome a solicitação de abrir o estúdio P2P (evita reabrir ao recompor a tela). */
+    /**
+     * PT: Consome a solicitação de abrir o estúdio P2P (evita reabrir ao recompor a tela).
+     * EN: Consumes the request to open the P2P studio (avoids reopening when recomposing the screen).
+     */
     fun consumeStudioUrl() {
         _studioUrl.value = null
     }
 
     /**
-     * O estúdio P2P precisa do microfone para o WebView. Enquanto ele está
-     * aberto, pausamos a captura nativa do VU meter para não bloquear o
-     * `getUserMedia` do VDO.Ninja.
+     * PT: O estúdio P2P precisa do microfone para o WebView. Enquanto ele está
+     * PT: aberto, pausamos a captura nativa do VU meter para não bloquear o
+     * PT: `getUserMedia` do VDO.Ninja.
+     *
+     * EN: The P2P studio needs the microphone for the WebView. While it is
+     * EN: open, we pause the native VU meter capture so it does not block
+     * EN: VDO.Ninja's `getUserMedia`.
      */
     fun pauseMicMonitoring() = engine.setMicMonitoring(false)
 
     /**
-     * Volta a medir o microfone ao sair do estúdio. A pequena espera dá tempo
-     * ao WebView de libertar o `AudioRecord`.
+     * PT: Volta a medir o microfone ao sair do estúdio. A pequena espera dá tempo
+     * PT: ao WebView de libertar o `AudioRecord`.
+     *
+     * EN: Resumes measuring the microphone when leaving the studio. The short wait gives
+     * EN: the WebView time to release the `AudioRecord`.
      */
     fun resumeMicMonitoring() {
         viewModelScope.launch {
@@ -636,13 +760,21 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     /**
-     * Cria (ou atualiza) um destino **P2P**: ao transmitir, o app abre o estúdio
-     * WebRTC do VDO.Ninja com o link `?push=ID&password=...` em vez de usar WHIP.
+     * PT: Cria (ou atualiza) um destino **P2P**: ao transmitir, o app abre o estúdio
+     * PT: WebRTC do VDO.Ninja com o link `?push=ID&password=...` em vez de usar WHIP.
+     *
+     * EN: Creates (or updates) a **P2P** target: when streaming, the app opens the
+     * EN: VDO.Ninja WebRTC studio with the `?push=ID&password=...` link instead of using WHIP.
      */
     fun applyVdoP2PTarget(): Boolean {
         val vdo = settings.value.vdoNinja
         if (VdoNinja.pushId(vdo).isBlank()) {
-            _events.tryEmit("Informe um ID de ligação ou uma sala do VDO.Ninja.")
+            _events.tryEmit(
+                L10n.t(
+                    "Informe um ID de ligação ou uma sala do VDO.Ninja.",
+                    "Provide a VDO.Ninja stream ID or room."
+                )
+            )
             return false
         }
         val target = StreamTarget(
@@ -654,23 +786,37 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         repository.update { current ->
             val remaining = current.targets.filterNot {
                 it.kind == TargetKind.VDO_P2P ||
-                    // Remove o destino WHIP criado pela versão antiga do botão.
+                    // PT: Remove o destino WHIP criado pela versão antiga do botão.
+                    // EN: Removes the WHIP target created by the old version of the button.
                     (it.name == "VDO.Ninja" && it.url.contains("whip.vdo.ninja"))
             }
             current.copy(targets = remaining + target, selectedTargetId = target.id)
         }
-        _events.tryEmit("Destino P2P pronto. Toque em transmitir para abrir o estúdio.")
+        _events.tryEmit(
+            L10n.t(
+                "Destino P2P pronto. Toque em transmitir para abrir o estúdio.",
+                "P2P target ready. Tap stream to open the studio."
+            )
+        )
         return true
     }
 
     /**
-     * Cria (ou atualiza) um destino WHIP apontando para a sala/ID do VDO.Ninja
-     * e o seleciona para transmissão nativa com a câmera do app.
+     * PT: Cria (ou atualiza) um destino WHIP apontando para a sala/ID do VDO.Ninja
+     * PT: e o seleciona para transmissão nativa com a câmera do app.
+     *
+     * EN: Creates (or updates) a WHIP target pointing to the VDO.Ninja room/ID
+     * EN: and selects it for native streaming with the app camera.
      */
     fun applyVdoNinjaTarget(): Boolean {
         val vdo = settings.value.vdoNinja
         if (VdoNinja.pushId(vdo).isBlank()) {
-            _events.tryEmit("Informe um ID de ligação ou gere uma sala do VDO.Ninja.")
+            _events.tryEmit(
+                L10n.t(
+                    "Informe um ID de ligação ou gere uma sala do VDO.Ninja.",
+                    "Provide a stream ID or generate a VDO.Ninja room."
+                )
+            )
             return false
         }
         val target = StreamTarget(
@@ -684,7 +830,12 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
             }
             current.copy(targets = remaining + target, selectedTargetId = target.id)
         }
-        _events.tryEmit("Destino WHIP (experimental) pronto. Toque em transmitir.")
+        _events.tryEmit(
+            L10n.t(
+                "Destino WHIP (experimental) pronto. Toque em transmitir.",
+                "WHIP target (experimental) ready. Tap stream."
+            )
+        )
         return true
     }
 
@@ -704,7 +855,7 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch(Dispatchers.IO) {
             val imported = DeepLinkParser.parse(uri)
             if (imported == null) {
-                _events.tryEmit("Link inválido ou sem destinos.")
+                _events.tryEmit(L10n.t("Link inválido ou sem destinos.", "Invalid link or no targets."))
                 return@launch
             }
             repository.update { current ->
@@ -714,18 +865,29 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
                     codec = imported.codec ?: current.codec
                 )
             }
-            _events.tryEmit("${imported.targets.size} destino(s) importado(s).")
+            _events.tryEmit(
+                    L10n.t(
+                        "${imported.targets.size} destino(s) importado(s).",
+                        "${imported.targets.size} target(s) imported."
+                    )
+                )
         }
     }
 
     // ---------------------------------------------------------------------
-    // Chat
+    // PT: Chat
+    // EN: Chat
     // ---------------------------------------------------------------------
 
     fun connectChat() {
         val chat = settings.value.chat
         if (chat.channel.isBlank()) {
-            _events.tryEmit("Informe o canal da Twitch nas configurações.")
+            _events.tryEmit(
+                L10n.t(
+                    "Informe o canal da Twitch nas configurações.",
+                    "Set the Twitch channel in settings."
+                )
+            )
             return
         }
         chatManager.connect(chat)
@@ -736,7 +898,12 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     fun sendChatMessage(text: String) {
         if (text.isBlank()) return
         if (!chatManager.send(text)) {
-            _events.tryEmit("Para enviar mensagens, informe usuário e token OAuth nas configurações.")
+            _events.tryEmit(
+                L10n.t(
+                    "Para enviar mensagens, informe usuário e token OAuth nas configurações.",
+                    "To send messages, set the username and OAuth token in settings."
+                )
+            )
         }
     }
 
@@ -745,7 +912,8 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     fun clearChat() = chatManager.clearHistory()
 
     // ---------------------------------------------------------------------
-    // Internos
+    // PT: Internos
+    // EN: Internals
     // ---------------------------------------------------------------------
 
     private fun startStatsLoop() {
@@ -758,9 +926,13 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     /**
-     * O medidor de microfone precisa de ~16 atualizações por segundo para
-     * parecer instantâneo. É um StateFlow próprio, então só o componente do
-     * VU meter recompõe (a tela inteira não é reconstruída).
+     * PT: O medidor de microfone precisa de ~16 atualizações por segundo para
+     * PT: parecer instantâneo. É um StateFlow próprio, então só o componente do
+     * PT: VU meter recompõe (a tela inteira não é reconstruída).
+     *
+     * EN: The microphone meter needs ~16 updates per second to
+     * EN: feel instant. It is its own StateFlow, so only the VU meter
+     * EN: component recomposes (the whole screen is not rebuilt).
      */
     private fun startMicLevelLoop() {
         viewModelScope.launch {
@@ -771,7 +943,10 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    /** Copia o VU meter nativo, exceto enquanto o estúdio P2P fornece o nível. */
+    /**
+     * PT: Copia o VU meter nativo, exceto enquanto o estúdio P2P fornece o nível.
+     * EN: Copies the native VU meter, except while the P2P studio provides the level.
+     */
     private fun observeEngineMicLevel() {
         viewModelScope.launch {
             engine.micLevel.collect { level ->
@@ -780,7 +955,10 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    /** Converte amplitude linear (0..1) para a escala do medidor (dB -60..0). */
+    /**
+     * PT: Converte amplitude linear (0..1) para a escala do medidor (dB -60..0).
+     * EN: Converts linear amplitude (0..1) to the meter scale (dB -60..0).
+     */
     private fun linearToMeter(linear: Float): Float {
         if (linear <= 0.0006f) return 0f
         val db = (20.0 * log10(linear.toDouble())).coerceIn(-60.0, 0.0)
@@ -794,8 +972,10 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
                     StreamStatus.CONNECTING,
                     StreamStatus.LIVE,
                     StreamStatus.RECONNECTING -> startStreamService()
-                    // O serviço também mantém o estúdio P2P vivo enquanto o
-                    // encoder nativo está em IDLE.
+                    // PT: O serviço também mantém o estúdio P2P vivo enquanto o
+                    // PT: encoder nativo está em IDLE.
+                    // EN: The service also keeps the P2P studio alive while the
+                    // EN: native encoder is IDLE.
                     else -> if (!_vdoLive.value) stopStreamService()
                 }
             }
@@ -838,7 +1018,10 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
                 val chat = settings.value.chat
                 if (!chat.textToSpeech || !ttsReady || !engine.state.value.isLive) return@collect
                 textToSpeech?.speak(
-                    "${last.displayName} disse: ${last.text}",
+                    L10n.t(
+                        "${last.displayName} disse: ${last.text}",
+                        "${last.displayName} said: ${last.text}"
+                    ),
                     TextToSpeech.QUEUE_ADD,
                     null,
                     last.id

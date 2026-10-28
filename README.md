@@ -1,371 +1,381 @@
-# IRL Streaming — transmissão ao vivo para Android
+# IRL Streaming — live streaming for Android
 
-App Android **independente** de transmissão ao vivo pelo celular, inspirado no
-[Moblin](https://moblin.app/) (iOS). O objetivo é entregar o fluxo principal de IRL
-streaming no Android: câmera + microfone → encoder → RTMP/RTMPS/SRT/WHIP, com chat,
-gravação local, múltiplos destinos, VDO.Ninja (P2P) e importação de links `moblin://`.
+An **independent** Android app for live streaming from your phone, inspired by
+[Moblin](https://moblin.app/) (iOS). The goal is to deliver the core IRL
+streaming workflow on Android: camera + microphone → encoder → RTMP/RTMPS/SRT/WHIP,
+with chat, local recording, multiple targets, VDO.Ninja (P2P) and `moblin://` link
+import.
 
-> **Status:** beta (v0.7.0). O Moblin tem anos de desenvolvimento e dezenas de
-> recursos avançados (cenas, widgets, SRTLA, OBS remoto, Apple Watch). Veja a
-> seção [Diferenças em relação ao Moblin](#diferenças-em-relação-ao-moblin) antes de
-> esperar paridade 1:1.
+> **Status:** beta (v0.8.0). Moblin has years of development and dozens of
+> advanced features (scenes, widgets, SRTLA, remote OBS, Apple Watch). See the
+> [Differences from Moblin](#differences-from-moblin) section before expecting
+> 1:1 parity.
 
-**Download:** [Releases do GitHub](https://github.com/Dagostinhobr/IRL-Streaming/releases) —
-`IRL-Streaming-0.7.0.apk` (release assinado) ou `IRL-Streaming-0.7.0-debug.apk` (teste).
+**Download:** [GitHub Releases](https://github.com/Dagostinhobr/IRL-Streaming/releases) —
+`IRL-Streaming-0.8.0.apk` (signed release) or `IRL-Streaming-0.8.0-debug.apk` (test build).
 
-> **Nome:** o aplicativo aparece como **IRL Streaming** na launcher. O identificador
-> interno do pacote continua `app.streamlink` para preservar instalações e upgrades.
+> **Name:** the app appears as **IRL Streaming** in the launcher. The internal
+> package identifier remains `app.streamlink` to preserve existing installs and
+> upgrades.
+
+> **Language:** the interface is available in **Portuguese** and **English**.
+> Change it at any time in **Settings → Language**.
 
 ---
 
-## Funcionalidades implementadas
+## Implemented features
 
-| Área | Recurso |
+| Area | Feature |
 |---|---|
-| Streaming | RTMP, RTMPS, SRT, RTSP e UDP (via [RootEncoder](https://github.com/pedroSG94/RootEncoder)) |
-| WebRTC | WHIP nativo (experimental) e estúdio P2P do VDO.Ninja dentro do app (WebView) |
-| VDO.Ninja | Sala **ou ID de ligação** (`?push=ID&password=...` / `?view=ID&p=...`), importação de links, estúdio P2P no app e destino P2P |
-| Vídeo | H.264/AVC e H.265/HEVC, 480p/720p/1080p, 24/30/60 fps, bitrate configurável |
-| Áudio | AAC, 64–192 kbps, 44.1/48 kHz, mono/estéreo, cancelamento de eco e supressão de ruído |
-| VU meter | Medidor de sinal do microfone no ecrã principal (escala −60 a 0 dB, com ataque rápido e decaimento suave) |
-| Microfone | Seleção de entrada em tempo real: automático (interno), **USB**, fone com microfone, Bluetooth; o microfone da câmera USB é escolhido automaticamente |
-| Câmera | Traseira/frontal, seleção na lista de câmeras, **câmera USB UVC por OTG**, zoom por pinça, presets de zoom, toque para focar, lanterna |
-| Orientação | **Automática pelo sensor** (vertical em pé, horizontal deitado) ou fixa em retrato/paisagem, com botão na tela principal e mudança ao vivo |
-| Controle | Mudo, tela preta (stealth), manter tela ligada |
-| Conexão | Status ao vivo, uptime, bitrate real, FPS real, frames perdidos, reconexão automática (5 tentativas) |
-| Gravação | MP4 local simultâneo à transmissão, em `Android/data/app.streamlink/files/recordings` |
-| Destinos | Lista de URLs com nome, protocolo, stream key e URL de backup; troca com um toque |
-| Chat | Twitch via IRC/WebSocket: leitura anônima, envio com OAuth, badges, cores, remoção de mensagens, alertas de sub/raid |
-| Chat extra | Overlay sobre o vídeo, timestamps, TTS (ler mensagens em voz alta), limpeza de histórico |
-| Integração | Deep links `moblin://`, `streamlink://` e `irlstream://` para importar destinos |
-| Segundo plano | Foreground service com notificação persistente e botão "Encerrar" |
-| Persistência | Todas as configurações em SharedPreferences/JSON |
+| Streaming | RTMP, RTMPS, SRT, RTSP and UDP (via [RootEncoder](https://github.com/pedroSG94/RootEncoder)) |
+| WebRTC | Native WHIP (experimental) and the VDO.Ninja P2P studio inside the app (WebView) |
+| VDO.Ninja | Room **or stream ID** (`?push=ID&password=...` / `?view=ID&p=...`), link import, in-app P2P studio and P2P target |
+| Video | H.264/AVC and H.265/HEVC, 480p/720p/1080p, 24/30/60 fps, configurable bitrate |
+| Audio | AAC, 64–192 kbps, 44.1/48 kHz, mono/stereo, echo cancellation and noise suppression |
+| VU meter | Microphone level meter on the main screen (−60 to 0 dB scale, fast attack and smooth decay) |
+| Microphone | Real-time input selection: automatic (built-in), **USB**, wired headset, Bluetooth; the USB camera microphone is chosen automatically |
+| Camera | Rear/front, camera list selection, **USB UVC camera over OTG**, pinch zoom, zoom presets, tap to focus, torch |
+| Orientation | **Automatic from the sensor** (portrait when upright, landscape when sideways) or locked to portrait/landscape, with an on-screen button and live switching |
+| Controls | Mute, black screen (stealth), keep screen on |
+| Connection | Live status, uptime, actual bitrate, actual FPS, dropped frames, automatic reconnection (5 attempts) |
+| Recording | Local MP4 recorded alongside the stream, in `Android/data/app.streamlink/files/recordings` |
+| Targets | Named URL list with protocol, stream key and backup URL; switch with a tap |
+| Chat | Twitch over IRC/WebSocket: anonymous reading, sending with OAuth, badges, colours, message removal, sub/raid alerts |
+| Extra chat | Video overlay, timestamps, TTS (read messages aloud), history clearing |
+| Integration | `moblin://`, `streamlink://` and `irlstream://` deep links to import targets |
+| Background | Foreground service with a persistent notification and an "End" button |
+| Persistence | All settings in SharedPreferences/JSON |
 
-### Atalhos de uso
+### Usage shortcuts
 
-- **Toque** no preview → foco manual.
-- **Pinça** → zoom; chips `1x/2x/3x/5x/8x` → zoom rápido.
-- **VU meter** (acima do chip do destino) → mostra o sinal do microfone em tempo
-  real; fica vermelho com "MUDO" quando o microfone está silenciado.
-- **Botão central** → inicia/encerra a transmissão.
-- **Chip do destino** (acima do botão) → troca de destino.
-- **Ícone de chat** (barra lateral ou rodapé) → chat completo.
-- **Botão de orientação** (barra lateral, ícone de rotação) → alterna
-  **Auto → Vertical → Horizontal**. Em **Auto**, o vídeo acompanha o sensor:
-  em pé publica em retrato (720×1280, estilo Instagram) e deitado em paisagem
-  (1280×720, estilo YouTube). No P2P a mudança é aplicada ao vivo, sem encerrar
-  a transmissão; nos destinos RTMP/SRT a nova resolução entra na próxima live.
+- **Tap** the preview → manual focus.
+- **Pinch** → zoom; `1x/2x/3x/5x/8x` chips → quick zoom.
+- **VU meter** (above the target chip) → shows the microphone signal in real
+  time; it turns red with "MUTED" when the microphone is muted.
+- **Centre button** → start/stop the stream.
+- **Target chip** (above the button) → switch target.
+- **Chat icon** (side bar or footer) → full chat.
+- **Orientation button** (side bar, rotation icon) → cycles
+  **Auto → Portrait → Landscape**. In **Auto**, the video follows the sensor:
+  upright publishes in portrait (720×1280, Instagram style) and sideways in
+  landscape (1280×720, YouTube style). In P2P the change is applied live without
+  stopping the stream; on RTMP/SRT targets the new resolution takes effect on the
+  next live stream.
 
 ---
 
 ## VDO.Ninja (P2P)
 
-**Ajustes → VDO.Ninja** (ou **Destinos → VDO.Ninja**):
+**Settings → VDO.Ninja** (or **Targets → VDO.Ninja**):
 
-1. Em **Identificação**, informe um **ID de ligação** (ex.: `meu-stream-7f3a`) ou
-   gere uma **sala** (ex.: `sala-exemplo-42`). O ID tem prioridade sobre a sala.
-2. Preencha a **senha** se o stream for protegido (ex.: `minha-senha-ficticia`).
-   O botão **Colar link do VDO.Ninja e preencher** importa ID, sala, senha e host
-   de um link existente como
+1. Under **Identification**, enter a **stream ID** (e.g. `meu-stream-7f3a`) or
+   generate a **room** (e.g. `sala-exemplo-42`). The ID takes priority over the room.
+2. Fill in the **password** if the stream is protected (e.g. `minha-senha-ficticia`).
+   The **Paste VDO.Ninja link and fill in** button imports ID, room, password and
+   host from an existing link such as
    `https://vdo.ninja/?view=meu-stream-7f3a&p=minha-senha-ficticia`.
-3. **Links P2P**:
-   - **Publicar** — `https://vdo.ninja/?push=SEU_ID&password=SUA_SENHA` para enviar
-     câmera/mic.
-   - **Assistir** — `https://vdo.ninja/?view=SEU_ID&p=SUA_SENHA` para receber.
-4. **Usar como destino (P2P)** → cria o destino `VDO.Ninja (P2P)`. Ao tocar no
-   botão de transmitir na tela principal, o app abre o estúdio WebRTC com esse
-   link. Esse é o caminho correto para P2P — **não usa WHIP**.
-5. **Abrir estúdio** → abre o estúdio do VDO.Ninja no WebView do próprio app e
-   publica via WebRTC (P2P), usando a câmera e o microfone do aparelho. O link já
-   inclui `&autostart&webcam&audiodevice=1`: a publicação começa sozinha e o
-   microfone padrão é escolhido automaticamente, **sem pedir para selecionar de
-   novo**. Se a página demorar a renderizar, o app clica em "Share your Camera"
-   automaticamente.
-6. **Abrir player** → visualiza o ID/sala sem sair do app.
+3. **P2P links**:
+   - **Publish** — `https://vdo.ninja/?push=YOUR_ID&password=YOUR_PASSWORD` to send
+     camera/mic.
+   - **Watch** — `https://vdo.ninja/?view=YOUR_ID&p=YOUR_PASSWORD` to receive.
+4. **Use as target (P2P)** → creates the `VDO.Ninja (P2P)` target. When you tap the
+   stream button on the main screen, the app opens the WebRTC studio with that
+   link. This is the correct P2P path — **it does not use WHIP**.
+5. **Open studio** → opens the VDO.Ninja studio in the app's own WebView and
+   publishes over WebRTC (P2P), using the device camera and microphone. The link
+   already includes `&autostart&webcam&audiodevice=1`: publishing starts on its
+   own and the default microphone is selected automatically, **without asking you
+   to choose again**. If the page takes a while to render, the app clicks "Share
+   your Camera" automatically.
+6. **Open player** → watches the ID/room without leaving the app.
 
-> Os IDs, salas, senhas e links mostrados nesta documentação são **fictícios** e
-> servem apenas de exemplo. Substitua pelos seus próprios dados.
+> The IDs, rooms, passwords and links shown in this documentation are **fictional**
+> and serve only as examples. Replace them with your own data.
 
-O estúdio P2P é o caminho **recomendado e validado** para transmissões via
-VDO.Ninja: o WebRTC é negociado pelo próprio VDO.Ninja, e o app só concede as
-permissões de câmera/microfone.
+The P2P studio is the **recommended and validated** path for streaming via
+VDO.Ninja: WebRTC is negotiated by VDO.Ninja itself, and the app only grants the
+camera/microphone permissions.
 
-### WHIP nativo (experimental)
+### Native WHIP (experimental)
 
-O app também consegue publicar a câmera nativa via **WHIP** (WebRTC), mantendo a
-qualidade e os controles da transmissão RTMP:
+The app can also publish the native camera via **WHIP** (WebRTC), keeping the
+quality and controls of the RTMP stream:
 
-- Endpoint: `https://whip.vdo.ninja/TOKEN` (token = ID de ligação ou sala).
-- Link de retorno para OBS: `https://vdo.ninja/?whipview=TOKEN`.
-- O botão correspondente é **Usar como destino WHIP (experimental)** — separado
-  do destino P2P para não confundir os dois caminhos.
+- Endpoint: `https://whip.vdo.ninja/TOKEN` (token = stream ID or room).
+- Return link for OBS: `https://vdo.ninja/?whipview=TOKEN`.
+- The corresponding button is **Use as WHIP target (experimental)** — separate
+  from the P2P target so the two paths are not confused.
 
-> **Limitação atual:** o serviço `whip.vdo.ninja` respondeu **HTTP 504** em todos os
-> testes de publicação, e o cliente WHIP não concluiu o ICE contra servidores
-> locais. Enquanto isso não é estabilizado, trate esta opção como experimental e
-> use o **estúdio P2P** para ir ao ar. A UI indica essa limitação.
+> **Current limitation:** the `whip.vdo.ninja` service returned **HTTP 504** in every
+> publishing test, and the WHIP client did not complete ICE against local servers.
+> Until this is stabilised, treat this option as experimental and use the **P2P
+> studio** to go live. The UI indicates this limitation.
 
-### Microfone USB no estúdio P2P
+### USB microphone in the P2P studio
 
-Conecte o microfone USB (ou interface de áudio) **antes** de abrir o estúdio. O
-Android passa a usá-lo como entrada padrão do WebRTC e o estúdio já abre com ele
-selecionado. Para a transmissão RTMP/WHIP nativa, escolha o dispositivo em
-**Ajustes → Áudio → Microfone**.
+Connect the USB microphone (or audio interface) **before** opening the studio.
+Android then uses it as the default WebRTC input and the studio opens with it
+already selected. For native RTMP/WHIP streaming, choose the device in
+**Settings → Audio → Microphone**.
 
-> O WebView/WebRTC precisa da permissão normal `MODIFY_AUDIO_SETTINGS` para
-> selecionar o dispositivo de captura; sem ela o VDO.Ninja falhava com
-> `NotReadableError` e não publicava áudio.
+> WebView/WebRTC needs the normal `MODIFY_AUDIO_SETTINGS` permission to select the
+> capture device; without it VDO.Ninja failed with `NotReadableError` and did not
+> publish audio.
 
-### Câmera USB (UVC)
+### USB camera (UVC)
 
-O app reconhece câmeras USB ligadas por OTG e lista-as em
-**Ajustes → Câmera → Câmera principal**. Não é necessária uma câmera exposta
-pelo Camera2 do Android: o vídeo UVC é convertido para o mesmo pipeline
-OpenGL/encoder da câmera nativa.
+The app recognises USB cameras connected over OTG and lists them in
+**Settings → Camera → Main camera**. The camera does not need to be exposed by
+Android Camera2: UVC video is converted into the same OpenGL/encoder pipeline as
+the native camera.
 
-- Ao ligar a câmera, o Android pede autorização de acesso ao dispositivo USB;
-  aceite uma vez. O app deteta a ligação e atualiza a lista automaticamente.
-- A câmera USB aparece como **Câmera USB** com o nome do produto.
-- Se a câmera tiver microfone integrado (UAC), o app seleciona esse microfone
-  automaticamente quando a entrada está em **Automático**.
-- A entrada de áudio pode ser mudada a qualquer momento, inclusive durante a
-  transmissão: toque no medidor de microfone na tela principal ou use
-  **Ajustes → Áudio → Microfone**. A troca é aplicada em tempo real.
-- Com câmera USB, zoom, lanterna e PiP ficam indisponíveis (limitações do UVC).
-- Se a câmera for desligada, o app volta para a câmera nativa e para o
-  microfone interno na próxima preparação.
+- When you connect the camera, Android asks for permission to access the USB
+  device; accept once. The app detects the connection and refreshes the list
+  automatically.
+- The USB camera appears as **USB camera** with the product name.
+- If the camera has a built-in microphone (UAC), the app selects that microphone
+  automatically when the input is set to **Automatic**.
+- The audio input can be changed at any time, including during the stream: tap the
+  microphone meter on the main screen or use **Settings → Audio → Microphone**. The
+  switch is applied in real time.
+- With a USB camera, zoom, torch and PiP are unavailable (UVC limitations).
+- If the camera is disconnected, the app falls back to the native camera and the
+  built-in microphone on the next preparation.
 
-### PiP com duas câmeras
+### Two-camera PiP
 
-O app compõe **duas câmeras no mesmo vídeo**: a janela faz parte da transmissão e
-da gravação (não é o PiP do sistema Android). A câmera principal continua em tela
-cheia, com foco, zoom, lanterna e troca de lente; a segunda câmera é desenhada por
-um filtro OpenGL próprio (`PipFilterRender`) sobre o vídeo, com:
+The app composites **two cameras into the same video**: the window is part of the
+stream and the recording (it is not Android's system PiP). The main camera stays
+full screen with focus, zoom, torch and lens switching; the second camera is drawn
+by a custom OpenGL filter (`PipFilterRender`) over the video, with:
 
-- lente principal e lente da janela selecionáveis (traseiras/frontal);
-- posição (cantos ou centro), tamanho (20/30/40%) e rotação (0/90/180/270);
-- atalho para ligar/desligar na tela principal e em **Ajustes → PiP com duas câmeras**.
+- selectable main lens and window lens (rear/front);
+- position (corners or centre), size (20/30/40%) and rotation (0/90/180/270);
+- a shortcut to enable/disable it on the main screen and in **Settings → PiP with two cameras**.
 
-Requisito: o aparelho precisa anunciar duas câmeras simultâneas em
-`CameraManager.getConcurrentCameraIds()` (Android 11+). O app detecta isso e
-desabilita a opção quando não há suporte. O Redmi Note 9 Pro usado nos testes não
-suporta (lista vazia; `MAX_CAMERAS_IN_USE`), então a interface mostra o aviso e o
-modo fica desligado. A composição foi validada no mesmo aparelho injetando um
-padrão de teste na Surface da janela (posição, tamanho, máscara e rotação).
+Requirement: the device must advertise two concurrent cameras in
+`CameraManager.getConcurrentCameraIds()` (Android 11+). The app detects this and
+disables the option when unsupported. The Redmi Note 9 Pro used in testing does
+not support it (empty list; `MAX_CAMERAS_IN_USE`), so the interface shows the
+warning and the mode stays disabled. The composition was validated on the same
+device by injecting a test pattern into the window Surface (position, size, mask
+and rotation).
 
-Se a segunda câmera falhar (por exemplo, outro app usando a câmera), o app
-remove a janela e mostra o motivo, sem interromper a transmissão principal.
+If the second camera fails (for example, another app is using the camera), the app
+removes the window and shows the reason without interrupting the main stream.
 
-Alternativa que funciona em qualquer aparelho: usar um **segundo celular**
-como câmera via VDO.Ninja (`?push=SALA`) e posicionar essa fonte como PiP no OBS.
+An alternative that works on any device: use a **second phone** as a camera via
+VDO.Ninja (`?push=ROOM`) and place that source as a PiP in OBS.
 
 ---
 
-## Como compilar
+## Building
 
-### Requisitos
+### Requirements
 
-- Android Studio (Ladybug ou mais recente) **ou** JDK 17 + Android SDK 35
-- Android 8.0 (API 26) ou superior
-- Celular físico para testar câmera/encoder (emulador não tem câmera boa)
+- Android Studio (Ladybug or newer) **or** JDK 17 + Android SDK 35
+- Android 8.0 (API 26) or newer
+- A physical phone to test camera/encoder (emulators do not have a good camera)
 
-### Pelo Android Studio
+### In Android Studio
 
-1. Abra a pasta do projeto.
-2. Aguarde o Gradle sincronizar (o RootEncoder vem do JitPack; a primeira build baixa dependências).
-3. Conecte o celular com depuração USB e clique em **Run**.
+1. Open the project folder.
+2. Wait for Gradle to sync (RootEncoder comes from JitPack; the first build downloads dependencies).
+3. Connect the phone with USB debugging and click **Run**.
 
-### Por linha de comando
+### From the command line
 
 ```bash
 export JAVA_HOME="$HOME/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home"
 export ANDROID_HOME="$HOME/Library/Android/sdk"
 ./gradlew :app:assembleDebug
-# APK em app/build/outputs/apk/debug/app-debug.apk
+# APK at app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Instalar:
+Install:
 
 ```bash
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### APK de distribuição (release)
+### Distribution APK (release)
 
-O build de release usa a keystore configurada em `keystore.properties`
-(`storeFile`, `storePassword`, `keyAlias`, `keyPassword`). Sem esse arquivo o
-release compila, mas não é assinado.
+The release build uses the keystore configured in `keystore.properties`
+(`storeFile`, `storePassword`, `keyAlias`, `keyPassword`). Without that file the
+release compiles but is not signed.
 
 ```bash
 ./gradlew :app:assembleRelease
-# APK em app/build/outputs/apk/release/app-release.apk
+# APK at app/build/outputs/apk/release/app-release.apk
 ```
 
-Para gerar uma keystore nova:
+To generate a new keystore:
 
 ```bash
 keytool -genkeypair -v -keystore .keys/irl-streaming.jks -alias irlstreaming \
   -keyalg RSA -keysize 4096 -validity 10000
 ```
 
-> **Atenção:** a keystore é a identidade do app. Guarde o `.jks` e as senhas; sem
-> ela não é possível atualizar instalações existentes. O `.gitignore` já exclui
-> `.keys/`, `keystore.properties` e `dist/`.
+> **Warning:** the keystore is the app's identity. Keep the `.jks` file and the
+> passwords; without them you cannot update existing installations. `.gitignore`
+> already excludes `.keys/`, `keystore.properties` and `dist/`.
 
-Para disponibilizar o download na rede local:
+To serve the download on the local network:
 
 ```bash
 mkdir -p dist
-cp app/build/outputs/apk/release/app-release.apk dist/IRL-Streaming-0.7.0.apk
-cp app/build/outputs/apk/debug/app-debug.apk dist/IRL-Streaming-0.7.0-debug.apk
+cp app/build/outputs/apk/release/app-release.apk dist/IRL-Streaming-0.8.0.apk
+cp app/build/outputs/apk/debug/app-debug.apk dist/IRL-Streaming-0.8.0-debug.apk
 python3 -m http.server 8080 --bind 0.0.0.0 --directory dist
-# abra http://SEU_IP:8080 no celular
+# open http://YOUR_IP:8080 on the phone
 ```
 
 ---
 
-## Configuração rápida
+## Quick setup
 
-### 1. Destino
+### 1. Target
 
-Abra **Destinos** (ícone de cast) → escolha ou crie um destino:
+Open **Targets** (cast icon) → choose or create a target:
 
-| Plataforma | URL de ingest | Stream key |
+| Platform | Ingest URL | Stream key |
 |---|---|---|
-| Twitch | `rtmp://live.twitch.tv/app` | sua chave (Twitch Dashboard → Configurações → Transmissão) |
-| YouTube | `rtmp://a.rtmp.youtube.com/live2` | chave do YouTube Studio |
-| Kick | `rtmps://fa723fc1b171.global-contribute.live-video.net:443/app` | chave do Kick |
-| SRT próprio | `srt://host:porta?streamid=...` | deixe vazio |
-| WHIP | `https://whip.vdo.ninja/TOKEN` | deixe vazio |
+| Twitch | `rtmp://live.twitch.tv/app` | your key (Twitch Dashboard → Settings → Stream) |
+| YouTube | `rtmp://a.rtmp.youtube.com/live2` | key from YouTube Studio |
+| Kick | `rtmps://fa723fc1b171.global-contribute.live-video.net:443/app` | Kick key |
+| Custom SRT | `srt://host:port?streamid=...` | leave empty |
+| WHIP | `https://whip.vdo.ninja/TOKEN` | leave empty |
 
-> Para RTMP a URL final é `url/streamKey`. Para SRT/RTSP/WHIP com chave embutida,
-> cole a URL completa e deixe a stream key vazia.
+> For RTMP the final URL is `url/streamKey`. For SRT/RTSP/WHIP with an embedded key,
+> paste the full URL and leave the stream key empty.
 
-### 2. Chat da Twitch
+### 2. Twitch chat
 
-**Ajustes → Chat**:
+**Settings → Chat**:
 
-- **Canal**: nome do canal (sem `#`).
-- **Leitura**: funciona sem login (modo anônimo).
-- **Envio**: informe **usuário** e **token OAuth** com escopos `chat:read chat:edit`.
-  Gere em <https://twitchapps.com/tmi/> (não é um serviço oficial da Twitch; use por sua conta e risco)
-  ou via OAuth oficial.
+- **Channel**: channel name (without `#`).
+- **Reading**: works without login (anonymous mode).
+- **Sending**: provide the **username** and an **OAuth token** with the
+  `chat:read chat:edit` scopes. Generate it at <https://twitchapps.com/tmi/>
+  (not an official Twitch service; use at your own risk) or through official OAuth.
 
-O chat conecta automaticamente ao iniciar a live.
+The chat connects automatically when the live stream starts.
 
-### 3. Importar do Moblin
+### 3. Import from Moblin
 
-O app aceita o formato do Moblin:
+The app accepts the Moblin format:
 
 ```
 moblin://?%7B%22streams%22%3A%5B%7B%22name%22%3A%22Casa%22%2C%22url%22%3A%22rtmp%3A%2F%2Flive.twitch.tv%2Fapp%2FCHAVE%22%7D%5D%7D
 ```
 
-Decodificado:
+Decoded:
 
 ```json
 { "streams": [ { "name": "Casa", "url": "rtmp://live.twitch.tv/app/CHAVE" } ] }
 ```
 
-Abra o link no celular (ele precisa estar registrado no navegador/telegram/etc.) ou
+Open the link on the phone (it must be registered in the browser/Telegram/etc.) or
 use `adb shell am start -a android.intent.action.VIEW -d "moblin://?..."`.
-Cada stream vira um destino e o primeiro é selecionado.
+Each stream becomes a target and the first one is selected.
 
 ---
 
-## Arquitetura
+## Architecture
 
 ```
 app/src/main/java/app/streamlink/
-├── MainActivity.kt              # entrada, deep links, botão "Encerrar" da notificação
+├── MainActivity.kt              # entry point, deep links, notification "End" button
 ├── data/
 │   ├── Models.kt                # AppSettings, StreamTarget, VdoNinjaSettings, enums, defaults
-│   └── SettingsRepository.kt    # persistência JSON (SharedPreferences + StateFlow)
+│   └── SettingsRepository.kt    # JSON persistence (SharedPreferences + StateFlow)
 ├── stream/
-│   ├── StreamEngine.kt          # StreamBase: WhipStream (WebRTC) ou GenericStream (RTMP/SRT/...)
-│   ├── StreamUiState.kt         # estado observável da live
-│   └── StreamService.kt         # foreground service + notificação
+│   ├── StreamEngine.kt          # StreamBase: WhipStream (WebRTC) or GenericStream (RTMP/SRT/...)
+│   ├── StreamUiState.kt         # observable live stream state
+│   └── StreamService.kt         # foreground service + notification
 ├── chat/
 │   ├── ChatModels.kt
-│   ├── TwitchChatClient.kt      # IRC sobre WebSocket (tags, comandos, clearmsg)
-│   └── ChatManager.kt           # histórico, reconexão, moderação
+│   ├── TwitchChatClient.kt      # IRC over WebSocket (tags, commands, clearmsg)
+│   └── ChatManager.kt           # history, reconnection, moderation
+├── i18n/
+│   └── I18n.kt                  # Portuguese/English UI layer (Compose + non-Compose)
 ├── ui/
-│   ├── StreamViewModel.kt       # orquestra engine + chat + TTS + settings + VDO.Ninja
-│   ├── StreamLinkApp.kt         # navegação (Home, Settings, Targets, VDO.Ninja, WebView)
+│   ├── StreamViewModel.kt       # orchestrates engine + chat + TTS + settings + VDO.Ninja
+│   ├── StreamLinkApp.kt         # navigation (Home, Settings, Targets, VDO.Ninja, WebView)
 │   ├── screens/                 # Home, Settings, Targets, VdoNinja, VdoNinjaWeb
-│   ├── components/              # preview, gestos, chat, componentes Material 3
+│   ├── components/              # preview, gestures, chat, Material 3 components
 │   └── theme/
-└── util/                        # VdoNinja (links), AudioDevices (USB), deep link, permissões
+└── util/                        # VdoNinja (links), AudioDevices (USB), deep link, permissions
 ```
 
 Stack: **Kotlin + Jetpack Compose + Material 3 + Camera2/RootEncoder + OkHttp + WebView**.
-Sem telemetria, sem servidor próprio: o vídeo vai direto para o servidor de ingest
-que você configurar (ou direto para o convidado, no caso do P2P).
+No telemetry, no own server: video goes straight to the ingest server you configure
+(or directly to the guest, in the case of P2P).
 
-### Permissões
+### Permissions
 
-| Permissão | Uso |
+| Permission | Purpose |
 |---|---|
-| `CAMERA` | Captura de vídeo |
-| `RECORD_AUDIO` | Microfone |
-| `INTERNET` | Enviar o stream, conectar ao chat e ao VDO.Ninja |
-| `FOREGROUND_SERVICE` + `..._CAMERA` + `..._MICROPHONE` | Manter a live ativa em segundo plano |
-| `POST_NOTIFICATIONS` | Notificação da live (Android 13+) |
-| `WAKE_LOCK` | Evitar suspensão durante a transmissão |
+| `CAMERA` | Video capture |
+| `RECORD_AUDIO` | Microphone |
+| `INTERNET` | Send the stream, connect to chat and VDO.Ninja |
+| `FOREGROUND_SERVICE` + `..._CAMERA` + `..._MICROPHONE` | Keep the live stream running in the background |
+| `POST_NOTIFICATIONS` | Live stream notification (Android 13+) |
+| `WAKE_LOCK` | Prevent suspension during streaming |
 
 ---
 
-## Diferenças em relação ao Moblin
+## Differences from Moblin
 
-Implementado neste beta: o núcleo de captura/encoders, destinos, chat Twitch,
-gravação, estatísticas, reconexão, TTS, deep links, VDO.Ninja (P2P no WebView) e
-seleção de microfone USB.
+Implemented in this beta: the capture/encoder core, targets, Twitch chat,
+recording, statistics, reconnection, TTS, deep links, VDO.Ninja (P2P in the
+WebView) and USB microphone selection.
 
-**Ainda não implementado** (roadmap sugerido, em ordem de impacto):
+**Not implemented yet** (suggested roadmap, in order of impact):
 
-1. **SRTLA / bonding** de múltiplas conexões (WiFi + celular). O RootEncoder suporta
-   SRT simples; SRTLA exige um cliente específico (ex.: libsrt + SRTLA) e servidor
-   compatível (BELABOX).
-2. **RIST** e WHIP estável contra o serviço do VDO.Ninja.
-3. **Cenas e widgets** (texto, imagem, mapa, chat na tela, placar, alertas, LUTs,
-   filtros de vídeo). É a maior parte do código do Moblin.
-4. **Integrações Kick, YouTube e SOOP** (chat, viewers, título/categoria, alertas).
-5. **OBS WebSocket** e controle remoto web.
-6. **Migração para CameraX** com multi-câmera e troca de fonte de vídeo em tempo real.
-7. **Streaming em segundo plano com áudio** (vídeo congelado), como no Moblin.
-8. **Câmera UVC, gimbal, Apple Watch (equivalente Wear OS), leitor de chat com
-   emotes BTTV/FFZ/7TV, moderação completa.**
-9. **Múltiplos destinos simultâneos** (hoje a troca é manual, um por vez).
-10. **Testes instrumentados** de encoder em dispositivos reais.
+1. **SRTLA / bonding** of multiple connections (Wi-Fi + mobile). RootEncoder supports
+   plain SRT; SRTLA requires a specific client (e.g. libsrt + SRTLA) and a compatible
+   server (BELABOX).
+2. **RIST** and stable WHIP against the VDO.Ninja service.
+3. **Scenes and widgets** (text, image, map, on-screen chat, scoreboard, alerts, LUTs,
+   video filters). This is most of Moblin's code.
+4. **Kick, YouTube and SOOP integrations** (chat, viewers, title/category, alerts).
+5. **OBS WebSocket** and web remote control.
+6. **Migration to CameraX** with multi-camera and real-time video source switching.
+7. **Background streaming with audio** (frozen video), as in Moblin.
+8. **UVC camera, gimbal, Apple Watch (Wear OS equivalent), chat reader with
+   BTTV/FFZ/7TV emotes, full moderation.**
+9. **Multiple simultaneous targets** (currently switching is manual, one at a time).
+10. **Instrumented encoder tests** on real devices.
 
-O Moblin é open source (Swift, iOS): <https://github.com/eerimoq/moblin>.
-Se quiser paridade real, o caminho é contribuir/portar módulos específicos, não
-reescrever tudo de uma vez.
+Moblin is open source (Swift, iOS): <https://github.com/eerimoq/moblin>.
+If you want real parity, the path is to contribute/port specific modules, not to
+rewrite everything at once.
 
 ---
 
-## Solução de problemas
+## Troubleshooting
 
-| Sintoma | Causa provável / solução |
+| Symptom | Likely cause / solution |
 |---|---|
-| "Configuração de vídeo/áudio não suportada" | Resolução/FPS/codec não suportado pela câmera. Baixe para 720p30/H.264. |
-| Conexão cai ao bloquear a tela | verifique se a notificação da live está ativa; desative otimização de bateria para o app. |
-| Chat não conecta | confira o nome do canal; teste sem token primeiro; alguns canais exigem login para ler. |
-| Não envia mensagens | usuário + token OAuth com `chat:edit`; o token deve ser do mesmo usuário. |
-| Vídeo de cabeça para baixo | toque no botão de orientação da tela principal e escolha Vertical/Horizontal, ou use Auto para seguir o sensor. |
-| APK não instala | desinstale a versão anterior (assinaturas diferentes) ou libere "instalar apps desconhecidos". |
-| Estúdio VDO.Ninja pede "Share your Camera" | toque no botão e permita câmera/microfone; o app já concede as permissões do Android. |
-| WHIP retorna erro/504 | serviço experimental do VDO.Ninja indisponível — use o estúdio P2P. |
-| Microfone USB não aparece | conecte antes de abrir os Ajustes e toque em "Atualizar lista"; verifique o cabo OTG. |
+| "Video/audio configuration not supported" | Resolution/FPS/codec not supported by the camera. Lower it to 720p30/H.264. |
+| Connection drops when the screen locks | check that the live notification is active; disable battery optimisation for the app. |
+| Chat does not connect | check the channel name; test without a token first; some channels require login to read. |
+| Cannot send messages | username + OAuth token with `chat:edit`; the token must belong to the same user. |
+| Upside-down video | tap the orientation button on the main screen and choose Portrait/Landscape, or use Auto to follow the sensor. |
+| APK will not install | uninstall the previous version (different signatures) or allow "install unknown apps". |
+| VDO.Ninja studio asks "Share your Camera" | tap the button and allow camera/microphone; the app already grants the Android permissions. |
+| WHIP returns an error/504 | VDO.Ninja experimental service unavailable — use the P2P studio. |
+| USB microphone does not appear | connect it before opening Settings and tap "Refresh list"; check the OTG cable. |
 
 ---
 
-## Aviso legal
+## Legal notice
 
-IRL Streaming é um projeto independente, sem afiliação com Moblin, Twitch, YouTube,
-Kick, VDO.Ninja, Meta ou Google. "Moblin" é citado apenas para compatibilidade de
-formato de link. Respeite os termos de serviço de cada plataforma e as leis de
-transmissão (privacidade, direitos de imagem, dirigir e transmitir etc.).
+IRL Streaming is an independent project, not affiliated with Moblin, Twitch,
+YouTube, Kick, VDO.Ninja, Meta or Google. "Moblin" is mentioned only for link
+format compatibility. Respect each platform's terms of service and streaming laws
+(privacy, image rights, driving while streaming, etc.).
 
-Licença do código deste repositório: MIT (sugerida). Dependências mantêm suas
-próprias licenças, incluindo RootEncoder (Apache 2.0).
+Code licence for this repository: MIT (suggested). Dependencies keep their own
+licences, including RootEncoder (Apache 2.0).

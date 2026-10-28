@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import app.streamlink.chat.ChatMessage
 import app.streamlink.chat.ChatStatus
 import app.streamlink.data.ChatSettings
+import app.streamlink.i18n.tr
 import app.streamlink.ui.StreamViewModel
 import app.streamlink.ui.theme.LiveRed
 import app.streamlink.ui.theme.Mint
@@ -126,13 +127,16 @@ fun ChatSheetContent(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Chat", color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(tr("Chat", "Chat"), color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Text(
                     text = when (status) {
-                        ChatStatus.CONNECTED -> "Conectado a #${chat.channel}"
-                        ChatStatus.CONNECTING -> "Conectando..."
-                        ChatStatus.RECONNECTING -> "Reconectando..."
-                        ChatStatus.DISCONNECTED -> "Desconectado"
+                        ChatStatus.CONNECTED -> tr(
+                            "Conectado a #${chat.channel}",
+                            "Connected to #${chat.channel}"
+                        )
+                        ChatStatus.CONNECTING -> tr("Conectando...", "Connecting...")
+                        ChatStatus.RECONNECTING -> tr("Reconectando...", "Reconnecting...")
+                        ChatStatus.DISCONNECTED -> tr("Desconectado", "Disconnected")
                     },
                     color = when (status) {
                         ChatStatus.CONNECTED -> Mint
@@ -147,7 +151,7 @@ fun ChatSheetContent(
                     if (status == ChatStatus.DISCONNECTED) viewModel.connectChat()
                     else viewModel.disconnectChat()
                 }) {
-                    Text(if (status == ChatStatus.DISCONNECTED) "Conectar" else "Desconectar")
+                    Text(if (status == ChatStatus.DISCONNECTED) tr("Conectar", "Connect") else tr("Desconectar", "Disconnect"))
                 }
             }
         }
@@ -163,8 +167,11 @@ fun ChatSheetContent(
             ) {
                 Text(
                     text = if (chat.channel.isBlank())
-                        "Configure o canal da Twitch em Ajustes > Chat."
-                    else "Nenhuma mensagem ainda.",
+                        tr(
+                            "Configure o canal da Twitch em Ajustes > Chat.",
+                            "Set the Twitch channel in Settings > Chat."
+                        )
+                    else tr("Nenhuma mensagem ainda.", "No messages yet."),
                     color = TextMuted,
                     fontSize = 13.sp
                 )
@@ -192,7 +199,11 @@ fun ChatSheetContent(
                 modifier = Modifier.weight(1f),
                 enabled = canSend,
                 placeholder = {
-                    Text(if (canSend) "Enviar mensagem" else "Token OAuth necessário", fontSize = 13.sp)
+                    Text(
+                            if (canSend) tr("Enviar mensagem", "Send message")
+                            else tr("Token OAuth necessário", "OAuth token required"),
+                            fontSize = 13.sp
+                        )
                 },
                 singleLine = true,
                 shape = RoundedCornerShape(24.dp)
@@ -208,14 +219,17 @@ fun ChatSheetContent(
                     .size(48.dp)
                     .background(if (canSend && input.isNotBlank()) LiveRed else PanelHigh, CircleShape)
             ) {
-                Icon(Icons.Filled.Send, contentDescription = "Enviar", tint = Color.White)
+                Icon(Icons.Filled.Send, contentDescription = tr("Enviar", "Send"), tint = Color.White)
             }
         }
 
         if (!canSend) {
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Para enviar mensagens informe usuário e token OAuth (chat:read chat:edit) em Ajustes > Chat.",
+                text = tr(
+                    "Para enviar mensagens informe usuário e token OAuth (chat:read chat:edit) em Ajustes > Chat.",
+                    "To send messages, provide the username and OAuth token (chat:read chat:edit) in Settings > Chat."
+                ),
                 color = TextMuted,
                 fontSize = 11.sp
             )
@@ -262,7 +276,7 @@ private fun ChatSheetLine(message: ChatMessage, showTimestamps: Boolean) {
                 )
             }
             Text(
-                text = if (message.isDeleted) "mensagem removida" else message.text,
+                text = if (message.isDeleted) tr("mensagem removida", "message removed") else message.text,
                 color = if (message.isDeleted) TextMuted else TextPrimary,
                 fontSize = 14.sp,
                 textDecoration = if (message.isDeleted) TextDecoration.LineThrough else TextDecoration.None

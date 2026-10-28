@@ -7,8 +7,10 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-// Assinatura do APK de distribuição. O arquivo keystore.properties não é
+// PT: Assinatura do APK de distribuição. O arquivo keystore.properties não é
 // versionado; sem ele o build de release continua funcionando (sem assinatura).
+// EN: Distribution APK signing. The keystore.properties file is not versioned;
+// without it the release build still works (unsigned).
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) {
@@ -24,8 +26,8 @@ android {
         applicationId = "app.streamlink"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.7.0"
+        versionCode = 8
+        versionName = "0.8.0"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -99,11 +101,14 @@ dependencies {    implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
 
-    // RTMP / RTMPS / SRT / RTSP encoder + camera
+    // PT: RTMP / RTMPS / SRT / RTSP encoder + câmera
+    // EN: RTMP / RTMPS / SRT / RTSP encoder + camera
     implementation(libs.rootencoder)
-    // Publicação WebRTC (WHIP) — usada pelo VDO.Ninja
+    // PT: Publicação WebRTC (WHIP) — usada pelo VDO.Ninja
+    // EN: WebRTC (WHIP) publishing — used by VDO.Ninja
     implementation(libs.rootencoder.whip)
-    // Câmeras USB UVC (vídeo e microfone integrado)
+    // PT: Câmeras USB UVC (vídeo e microfone integrado)
+    // EN: USB UVC cameras (video and built-in microphone)
     implementation(libs.uvcandroid)
 
     testImplementation("junit:junit:4.13.2")

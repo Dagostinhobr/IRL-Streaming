@@ -12,8 +12,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <!-- Necessária para o WebView/WebRTC selecionar o dispositivo de captura
-         (sem ela o getUserMedia falha com NotReadableError no VDO.Ninja). -->
+    <!-- PT: Necessária para o WebView/WebRTC selecionar o dispositivo de captura
+         (sem ela o getUserMedia falha com NotReadableError no VDO.Ninja).
+         EN: Required for WebView/WebRTC to select the capture device
+         (without it getUserMedia fails with NotReadableError in VDO.Ninja). -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -22,10 +24,13 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- A biblioteca UVC declara armazenamento total apenas para gravar fotos
+    <!-- PT: A biblioteca UVC declara armazenamento total apenas para gravar fotos
          de demonstração. O IRL Streaming não precisa disso e as lojas de
          aplicações restringem MANAGE_EXTERNAL_STORAGE; removemos as permissões
-         herdadas. -->
+         herdadas.
+         EN: The UVC library declares full storage access only to save demo
+         photos. IRL Streaming does not need it and app stores restrict
+         MANAGE_EXTERNAL_STORAGE; we remove the inherited permissions. -->
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:node="remove" />
@@ -36,7 +41,8 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:node="remove" />
 
-    <!-- Microfone USB é opcional: o app continua funcionando sem ele. -->
+    <!-- PT: Microfone USB é opcional: o app continua funcionando sem ele.
+         EN: USB microphone is optional: the app keeps working without it. -->
     <uses-feature
         android:name="android.hardware.usb.host"
         android:required="false"
@@ -65,7 +71,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Importação de destinos/ajustes, compatível com links moblin:// -->
+            <!-- PT: Importação de destinos/ajustes, compatível com links moblin://
+                 EN: Target/settings import, compatible with moblin:// links -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

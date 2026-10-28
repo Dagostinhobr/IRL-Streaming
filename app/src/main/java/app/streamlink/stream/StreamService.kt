@@ -10,11 +10,16 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import app.streamlink.MainActivity
 import app.streamlink.R
+import app.streamlink.i18n.L10n
 
 /**
- * Foreground service que mantém o processo vivo enquanto a transmissão está ativa.
- * O encoder roda na Activity/ViewModel; o serviço cuida da notificação persistente
- * e da ação "Encerrar".
+ * PT: Foreground service que mantém o processo vivo enquanto a transmissão está ativa.
+ * PT: O encoder roda na Activity/ViewModel; o serviço cuida da notificação persistente
+ * PT: e da ação "Encerrar".
+ *
+ * EN: Foreground service that keeps the process alive while the stream is active.
+ * EN: The encoder runs in the Activity/ViewModel; the service handles the persistent
+ * EN: notification and the "End" action.
  */
 class StreamService : Service() {
 
@@ -59,10 +64,10 @@ class StreamService : Service() {
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_live)
-            .setContentTitle(getString(R.string.notification_title))
-            .setContentText(getString(R.string.notification_text))
+            .setContentTitle(L10n.t("Transmissão ao vivo", "Live stream"))
+            .setContentText(L10n.t("IRL Streaming está no ar", "IRL Streaming is live"))
             .setContentIntent(openPendingIntent)
-            .addAction(0, getString(R.string.notification_stop), stopPendingIntent)
+            .addAction(0, L10n.t("Encerrar", "End"), stopPendingIntent)
             .setOngoing(true)
             .setUsesChronometer(true)
             .setWhen(System.currentTimeMillis())
@@ -76,10 +81,13 @@ class StreamService : Service() {
         val manager = getSystemService(NotificationManager::class.java)
         val channel = NotificationChannel(
             CHANNEL_ID,
-            getString(R.string.notification_channel_live),
+            L10n.t("Transmissão ao vivo", "Live stream"),
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = getString(R.string.notification_channel_live_desc)
+            description = L10n.t(
+                "Mantém a transmissão ativa em segundo plano",
+                "Keeps the stream active in the background"
+            )
             setShowBadge(false)
         }
         manager.createNotificationChannel(channel)

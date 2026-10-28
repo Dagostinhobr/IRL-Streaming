@@ -1,5 +1,6 @@
 package app.streamlink.util
 
+import app.streamlink.i18n.L10n
 import app.streamlink.data.CodecSetting
 import app.streamlink.data.StreamTarget
 import kotlinx.serialization.json.Json
@@ -15,12 +16,19 @@ data class DeepLinkImport(
 )
 
 /**
- * Importa configurações no formato do Moblin:
- *   moblin://?<JSON codificado>
- *   streamlink://?<JSON codificado>
+ * PT: Importa configurações no formato do Moblin:
+ * PT:   moblin://?<JSON codificado>
+ * PT:   streamlink://?<JSON codificado>
  *
- * Exemplo:
- *   moblin://?{"streams":[{"name":"Casa","url":"rtmp://live.twitch.tv/app/CHAVE"}]}
+ * PT: Exemplo:
+ * PT:   moblin://?{"streams":[{"name":"Casa","url":"rtmp://live.twitch.tv/app/CHAVE"}]}
+ *
+ * EN: Imports settings in the Moblin format:
+ * EN:   moblin://?<encoded JSON>
+ * EN:   streamlink://?<encoded JSON>
+ *
+ * EN: Example:
+ * EN:   moblin://?{"streams":[{"name":"Casa","url":"rtmp://live.twitch.tv/app/KEY"}]}
  */
 object DeepLinkParser {
 
@@ -52,7 +60,7 @@ object DeepLinkParser {
             if (url.isEmpty()) return@mapNotNull null
 
             val name = obj["name"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }
-                ?: "Destino importado"
+                ?: L10n.t("Destino importado", "Imported target")
 
             val codecText = obj["video"]?.jsonObject?.get("codec")?.jsonPrimitive?.contentOrNull
             if (codecText != null) {
@@ -63,7 +71,8 @@ object DeepLinkParser {
                 }
             }
 
-            // O Moblin normalmente coloca a stream key dentro da própria URL.
+            // PT: O Moblin normalmente coloca a stream key dentro da própria URL.
+            // EN: Moblin usually places the stream key inside the URL itself.
             StreamTarget(name = name, url = url)
         }
 

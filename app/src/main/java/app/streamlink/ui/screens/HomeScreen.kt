@@ -89,6 +89,8 @@ import app.streamlink.data.AppSettings
 import app.streamlink.data.StreamTarget
 import app.streamlink.data.TargetKind
 import app.streamlink.data.VideoOrientation
+import app.streamlink.i18n.localizedLabel
+import app.streamlink.i18n.tr
 import app.streamlink.stream.StreamStatus
 import app.streamlink.stream.StreamUiState
 import app.streamlink.ui.StreamViewModel
@@ -138,8 +140,10 @@ fun HomeScreen(
     val vdoMuted by viewModel.vdoMuted.collectAsStateWithLifecycle()
     val vdoTorchOn by viewModel.vdoTorchOn.collectAsStateWithLifecycle()
 
-    // No modo P2P o encoder nativo fica em IDLE: a interface mostra o estado
-    // do estúdio WebRTC que corre por baixo da Home.
+    // PT: No modo P2P o encoder nativo fica em IDLE: a interface mostra o estado
+    // PT: do estúdio WebRTC que corre por baixo da Home.
+    // EN: In P2P mode the native encoder stays IDLE: the interface shows the
+    // EN: state of the WebRTC studio running underneath the Home screen.
     val state = if (vdoLive) {
         nativeState.copy(
             status = StreamStatus.LIVE,
@@ -212,8 +216,10 @@ fun HomeScreen(
         onDispose { rootView.keepScreenOn = false }
     }
 
-    // Ao sair do P2P o SurfaceView é recriado; garante que o encoder volta a
-    // anexar o preview depois de o WebView libertar a câmera.
+    // PT: Ao sair do P2P o SurfaceView é recriado; garante que o encoder volta a
+    // PT: anexar o preview depois de o WebView libertar a câmera.
+    // EN: When leaving P2P the SurfaceView is recreated; ensures the encoder
+    // EN: attaches the preview again after the WebView releases the camera.
     LaunchedEffect(vdoLive) {
         if (!vdoLive) {
             delay(1_200)
@@ -230,9 +236,12 @@ fun HomeScreen(
             .background(Color.Black)
     ) {
         if (permissionsGranted) {
-            // Um SurfaceView fica sempre por cima das views do Compose. Por
-            // isso o preview nativo é desmontado durante o P2P (o WebView é
-            // quem mostra a câmera) e recriado ao terminar.
+            // PT: Um SurfaceView fica sempre por cima das views do Compose. Por
+            // PT: isso o preview nativo é desmontado durante o P2P (o WebView é
+            // PT: quem mostra a câmera) e recriado ao terminar.
+            // EN: A SurfaceView always sits above Compose views. That is why the
+            // EN: native preview is unmounted during P2P (the WebView is the one
+            // EN: showing the camera) and recreated when it ends.
             if (!vdoLive) {
                 CameraPreview(
                     modifier = Modifier.fillMaxSize(),
@@ -309,13 +318,13 @@ fun HomeScreen(
                 Spacer(Modifier.weight(1f))
                 RoundIconButton(
                     icon = Icons.Filled.Cast,
-                    contentDescription = "Destinos",
+                    contentDescription = tr("Destinos", "Targets"),
                     onClick = onOpenTargets
                 )
                 Spacer(Modifier.width(8.dp))
                 RoundIconButton(
                     icon = Icons.Filled.Settings,
-                    contentDescription = "Ajustes",
+                    contentDescription = tr("Ajustes", "Settings"),
                     onClick = onOpenSettings
                 )
             }
@@ -362,7 +371,7 @@ fun HomeScreen(
             ) {
                 QuickActionButton(
                     icon = if (state.torchOn) Icons.Filled.FlashOn else Icons.Filled.FlashOff,
-                    contentDescription = "Lanterna",
+                    contentDescription = tr("Lanterna", "Torch"),
                     active = state.torchOn,
                     compact = compactActions,
                     enabled = !usbCameraActive,
@@ -370,14 +379,17 @@ fun HomeScreen(
                 )
                 QuickActionButton(
                     icon = Icons.Filled.Cameraswitch,
-                    contentDescription = "Trocar câmera",
+                    contentDescription = tr("Trocar câmera", "Switch camera"),
                     compact = compactActions,
                     enabled = !usbCameraActive,
                     onClick = viewModel::switchCamera
                 )
                 QuickActionButton(
                     icon = Icons.Filled.ScreenRotation,
-                    contentDescription = "Orientação: ${settings.orientation.label}. Toque para alternar.",
+                    contentDescription = tr(
+                        "Orientação: ${settings.orientation.localizedLabel()}. Toque para alternar.",
+                        "Orientation: ${settings.orientation.localizedLabel()}. Tap to cycle."
+                    ),
                     active = settings.orientation == VideoOrientation.AUTO,
                     compact = compactActions,
                     onClick = viewModel::cycleOrientation
@@ -386,9 +398,9 @@ fun HomeScreen(
                     QuickActionButton(
                         icon = Icons.Filled.PictureInPictureAlt,
                         contentDescription = if (settings.dualCamera.enabled) {
-                            "Desativar janela PiP"
+                            tr("Desativar janela PiP", "Disable PiP window")
                         } else {
-                            "Ativar janela PiP"
+                            tr("Ativar janela PiP", "Enable PiP window")
                         },
                         active = settings.dualCamera.enabled && state.dualCameraActive,
                         compact = compactActions,
@@ -399,27 +411,27 @@ fun HomeScreen(
                 }
                 QuickActionButton(
                     icon = if (state.muted) Icons.Filled.MicOff else Icons.Filled.Mic,
-                    contentDescription = "Microfone",
+                    contentDescription = tr("Microfone", "Microphone"),
                     active = state.muted,
                     compact = compactActions,
                     onClick = viewModel::toggleMute
                 )
                 QuickActionButton(
                     icon = if (state.recording) Icons.Filled.Stop else Icons.Filled.FiberManualRecord,
-                    contentDescription = "Gravar",
+                    contentDescription = tr("Gravar", "Record"),
                     active = state.recording,
                     compact = compactActions,
                     onClick = viewModel::toggleRecording
                 )
                 QuickActionButton(
                     icon = Icons.Filled.Chat,
-                    contentDescription = "Chat",
+                    contentDescription = tr("Chat", "Chat"),
                     compact = compactActions,
                     onClick = { showChatSheet = true }
                 )
                 QuickActionButton(
                     icon = Icons.Filled.VisibilityOff,
-                    contentDescription = "Tela preta",
+                    contentDescription = tr("Tela preta", "Black screen"),
                     compact = compactActions,
                     onClick = { stealth = true }
                 )
@@ -447,7 +459,7 @@ fun HomeScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Tela oculta\nToque para voltar",
+                    text = tr("Tela oculta\nToque para voltar", "Screen hidden\nTap to return"),
                     color = Color.White.copy(alpha = 0.28f),
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center
@@ -503,18 +515,22 @@ private fun AudioInputSheet(
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp)
     ) {
-        Text("Entrada de áudio", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+        Text(tr("Entrada de áudio", "Audio input"), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(4.dp))
         Text(
-            "A troca é aplicada em tempo real, mesmo durante a transmissão. " +
-                "Se a câmera USB tiver microfone, ele é selecionado automaticamente.",
+            tr(
+                "A troca é aplicada em tempo real, mesmo durante a transmissão. " +
+                    "Se a câmera USB tiver microfone, ele é selecionado automaticamente.",
+                "Switching is applied in real time, even during the stream. " +
+                    "If the USB camera has a microphone, it is selected automatically."
+            ),
             color = TextMuted,
             fontSize = 12.sp
         )
         Spacer(Modifier.height(8.dp))
         AudioInputSheetRow(
-            title = "Automático",
-            subtitle = "Microfone interno do aparelho",
+            title = tr("Automático", "Automatic"),
+            subtitle = tr("Microfone interno do aparelho", "Device built-in microphone"),
             selected = selectedId < 0,
             badge = null,
             onClick = { onSelect(null) }
@@ -529,7 +545,7 @@ private fun AudioInputSheet(
             )
         }
         TextButton(onClick = onRefresh, modifier = Modifier.padding(top = 4.dp)) {
-            Text("Atualizar lista", color = Mint, fontSize = 12.sp)
+            Text(tr("Atualizar lista", "Refresh list"), color = Mint, fontSize = 12.sp)
         }
         Spacer(Modifier.height(12.dp))
     }
@@ -610,12 +626,12 @@ private fun BottomControls(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Pill(
-                    text = target?.badge ?: "SEM DESTINO",
+                    text = target?.badge ?: tr("SEM DESTINO", "NO TARGET"),
                     color = if (target != null) Mint else Warn
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = target?.name ?: "Adicionar destino",
+                    text = target?.name ?: tr("Adicionar destino", "Add target"),
                     color = TextPrimary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold
@@ -632,14 +648,20 @@ private fun BottomControls(
         Text(
             text = when (state.status) {
                 StreamStatus.IDLE -> if (target?.kind == TargetKind.VDO_P2P) {
-                    "Toque para transmitir via P2P"
+                    tr("Toque para transmitir via P2P", "Tap to stream via P2P")
                 } else {
-                    "Toque para transmitir"
+                    tr("Toque para transmitir", "Tap to stream")
                 }
-                StreamStatus.CONNECTING -> "Conectando..."
-                StreamStatus.LIVE -> "No ar • ${formatDuration(elapsedMillis)}"
-                StreamStatus.RECONNECTING -> "Reconectando (${state.reconnectAttempt})..."
-                StreamStatus.ERROR -> "Transmissão encerrada"
+                StreamStatus.CONNECTING -> tr("Conectando...", "Connecting...")
+                StreamStatus.LIVE -> tr(
+                    "No ar • ${formatDuration(elapsedMillis)}",
+                    "Live • ${formatDuration(elapsedMillis)}"
+                )
+                StreamStatus.RECONNECTING -> tr(
+                    "Reconectando (${state.reconnectAttempt})...",
+                    "Reconnecting (${state.reconnectAttempt})..."
+                )
+                StreamStatus.ERROR -> tr("Transmissão encerrada", "Stream ended")
             },
             color = if (state.status == StreamStatus.ERROR) LiveRed else TextPrimary,
             fontSize = 12.sp,
@@ -648,7 +670,7 @@ private fun BottomControls(
 
         Text(
             text = if (p2p) {
-                "Estúdio P2P em segundo plano"
+                tr("Estúdio P2P em segundo plano", "P2P studio in the background")
             } else {
                 buildString {
                     append(settings.resolution.label)
@@ -661,7 +683,7 @@ private fun BottomControls(
                         if (state.fps > 0) {
                             append(" • ")
                             append(state.fps)
-                            append(" fps reais")
+                            append(tr(" fps reais", " real fps"))
                         }
                     }
                 }
@@ -672,7 +694,7 @@ private fun BottomControls(
 
         if (state.recording) {
             Spacer(Modifier.height(4.dp))
-            Text("● REC", color = LiveRed, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Text("● " + tr("REC", "REC"), color = LiveRed, fontSize = 10.sp, fontWeight = FontWeight.Bold)
         }
 
         Spacer(Modifier.height(12.dp))
@@ -681,7 +703,7 @@ private fun BottomControls(
             TextButton(onClick = onOpenChat) {
                 Icon(Icons.Filled.Chat, contentDescription = null, tint = TextPrimary, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("Chat", color = TextPrimary, fontSize = 12.sp)
+                Text(tr("Chat", "Chat"), color = TextPrimary, fontSize = 12.sp)
             }
         }
     }
@@ -689,7 +711,8 @@ private fun BottomControls(
 
 @Composable
 private fun MicLevelMeter(level: StateFlow<Float>, muted: Boolean, onClick: () -> Unit) {
-    // A coleta fica confinada a este composable: a tela não recompõe a cada nível.
+    // PT: A coleta fica confinada a este composable: a tela não recompõe a cada nível.
+    // EN: Collection is confined to this composable: the screen does not recompose on every level.
     val value by level.collectAsStateWithLifecycle()
     val shown = if (muted) 0f else value
 
@@ -704,7 +727,7 @@ private fun MicLevelMeter(level: StateFlow<Float>, muted: Boolean, onClick: () -
         ) {
             Icon(
                 imageVector = if (muted) Icons.Filled.MicOff else Icons.Filled.Mic,
-                contentDescription = if (muted) "Microfone mudo" else "Nível do microfone",
+                contentDescription = if (muted) tr("Microfone mudo", "Microphone muted") else tr("Nível do microfone", "Microphone level"),
                 tint = if (muted) LiveRed else TextMuted,
                 modifier = Modifier.size(14.dp)
             )
@@ -718,7 +741,7 @@ private fun MicLevelMeter(level: StateFlow<Float>, muted: Boolean, onClick: () -
             Spacer(Modifier.width(8.dp))
             Text(
                 text = when {
-                    muted -> "MUDO"
+                    muted -> tr("MUDO", "MUTED")
                     shown <= 0f -> "—"
                     else -> "${(shown * 60f - 60f).roundToInt()} dB"
                 },
@@ -793,14 +816,14 @@ private fun GoLiveButton(state: StreamUiState, onClick: () -> Unit) {
 
                 live -> Icon(
                     Icons.Filled.Stop,
-                    contentDescription = "Encerrar transmissão",
+                    contentDescription = tr("Encerrar transmissão", "End stream"),
                     tint = Color.White,
                     modifier = Modifier.size(34.dp)
                 )
 
                 else -> Icon(
                     Icons.Filled.Videocam,
-                    contentDescription = "Iniciar transmissão",
+                    contentDescription = tr("Iniciar transmissão", "Start stream"),
                     tint = Ink,
                     modifier = Modifier.size(34.dp)
                 )
@@ -857,10 +880,10 @@ private fun LiveStatusPill(state: StreamUiState, elapsedMillis: Long, p2p: Boole
             Spacer(Modifier.width(7.dp))
             Text(
                 text = when (state.status) {
-                    StreamStatus.LIVE -> "AO VIVO"
-                    StreamStatus.CONNECTING -> "CONECTANDO"
-                    StreamStatus.RECONNECTING -> "RECONECTANDO"
-                    else -> "ERRO"
+                    StreamStatus.LIVE -> tr("AO VIVO", "LIVE")
+                    StreamStatus.CONNECTING -> tr("CONECTANDO", "CONNECTING")
+                    StreamStatus.RECONNECTING -> tr("RECONECTANDO", "RECONNECTING")
+                    else -> tr("ERRO", "ERROR")
                 },
                 color = Color.White,
                 fontSize = 10.sp,
@@ -950,24 +973,27 @@ private fun PermissionPlaceholder(
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            "Câmera e microfone",
+            tr("Câmera e microfone", "Camera and microphone"),
             color = TextPrimary,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "O IRL Streaming precisa dessas permissões para transmitir ao vivo.",
+            tr(
+                "O IRL Streaming precisa dessas permissões para transmitir ao vivo.",
+                "IRL Streaming needs these permissions to stream live."
+            ),
             color = TextMuted,
             fontSize = 13.sp,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(20.dp))
         Button(onClick = onRequest) {
-            Text("Conceder acesso")
+            Text(tr("Conceder acesso", "Grant access"))
         }
         TextButton(onClick = onOpenSettings) {
-            Text("Abrir ajustes do app")
+            Text(tr("Abrir ajustes do app", "Open app settings"))
         }
     }
 }

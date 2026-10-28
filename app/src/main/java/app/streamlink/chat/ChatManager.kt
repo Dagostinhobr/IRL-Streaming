@@ -1,5 +1,6 @@
 package app.streamlink.chat
 
+import app.streamlink.i18n.L10n
 import app.streamlink.data.ChatProvider
 import app.streamlink.data.ChatSettings
 import kotlinx.coroutines.CoroutineScope
@@ -13,8 +14,11 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 /**
- * Orquestra a conexão de chat, histórico e reconexão automática.
- * Outros provedores (Kick, YouTube) podem ser adicionados implementando o mesmo contrato.
+ * PT: Orquestra a conexão de chat, histórico e reconexão automática.
+ * PT: Outros provedores (Kick, YouTube) podem ser adicionados implementando o mesmo contrato.
+ *
+ * EN: Orchestrates the chat connection, history and automatic reconnection.
+ * EN: Other providers (Kick, YouTube) can be added by implementing the same contract.
  */
 class ChatManager(private val scope: CoroutineScope) {
 
@@ -72,7 +76,7 @@ class ChatManager(private val scope: CoroutineScope) {
                 _messages.update {
                     (it + ChatMessage(
                         id = UUID.randomUUID().toString(),
-                        displayName = "Sistema",
+                        displayName = L10n.t("Sistema", "System"),
                         text = text,
                         isSystem = true
                     )).takeLast(MAX_MESSAGES)

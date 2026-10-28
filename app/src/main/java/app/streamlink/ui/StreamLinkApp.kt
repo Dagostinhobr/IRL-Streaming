@@ -10,7 +10,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -21,6 +23,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.streamlink.i18n.L10n
+import app.streamlink.i18n.LocalLanguage
 import app.streamlink.ui.screens.HomeScreen
 import app.streamlink.ui.screens.SettingsScreen
 import app.streamlink.ui.screens.TargetsScreen
@@ -42,6 +47,12 @@ private object Routes {
 fun StreamLinkApp(viewModel: StreamViewModel) {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
+    val settings by viewModel.settings.collectAsStateWithLifecycle()
+
+    // PT: Mantém o tradutor fora de composables sincronizado com a escolha do
+    // utilizador. / EN: Keeps the non-composable translator in sync with the
+    // user's selection.
+    SideEffect { L10n.update(settings.language) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { message ->
@@ -49,6 +60,7 @@ fun StreamLinkApp(viewModel: StreamViewModel) {
         }
     }
 
+    CompositionLocalProvider(LocalLanguage provides settings.language) {
     Box(
         Modifier
             .fillMaxSize()
@@ -113,5 +125,6 @@ fun StreamLinkApp(viewModel: StreamViewModel) {
                 .navigationBarsPadding()
                 .padding(16.dp)
         )
+    }
     }
 }

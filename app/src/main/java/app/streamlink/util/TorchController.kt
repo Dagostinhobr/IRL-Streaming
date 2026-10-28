@@ -7,11 +7,17 @@ import android.hardware.camera2.CameraManager
 import android.util.Log
 
 /**
- * Lanterna para o modo em que a câmera é controlada pelo WebView (VDO.Ninja).
+ * PT: Lanterna para o modo em que a câmera é controlada pelo WebView (VDO.Ninja).
  *
- * Quando o navegador já abriu a câmera traseira, o `setTorchMode` do
- * CameraManager costuma continuar disponível. É usado como alternativa quando
- * a faixa de vídeo do WebRTC não expõe a capacidade `torch`.
+ * PT: Quando o navegador já abriu a câmera traseira, o `setTorchMode` do
+ * PT: CameraManager costuma continuar disponível. É usado como alternativa quando
+ * PT: a faixa de vídeo do WebRTC não expõe a capacidade `torch`.
+ *
+ * EN: Torch for the mode where the camera is controlled by the WebView (VDO.Ninja).
+ *
+ * EN: When the browser has already opened the back camera, CameraManager's
+ * EN: `setTorchMode` usually remains available. It is used as a fallback when
+ * EN: the WebRTC video track does not expose the `torch` capability.
  */
 class TorchController(context: Context) {
 

@@ -16,37 +16,57 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * Filtro que desenha uma segunda câmera sobre o vídeo principal.
+ * PT: Filtro que desenha uma segunda câmera sobre o vídeo principal.
  *
- * O RootEncoder desenha todos os filtros em um único quad de tela cheia, então
- * este filtro faz tudo em um shader: amostra o vídeo anterior e mistura a
- * textura da segunda câmera apenas dentro do retângulo configurado.
+ * PT: O RootEncoder desenha todos os filtros em um único quad de tela cheia, então
+ * PT: este filtro faz tudo em um shader: amostra o vídeo anterior e mistura a
+ * PT: textura da segunda câmera apenas dentro do retângulo configurado.
  *
- * Diferente do `SurfaceFilterRender` da biblioteca, a rotação aqui é aplicada
- * nas coordenadas de tela (e não nas coordenadas de textura), o que mantém a
- * janela sem distorção em qualquer proporção.
+ * PT: Diferente do `SurfaceFilterRender` da biblioteca, a rotação aqui é aplicada
+ * PT: nas coordenadas de tela (e não nas coordenadas de textura), o que mantém a
+ * PT: janela sem distorção em qualquer proporção.
+ *
+ * EN: Filter that draws a second camera over the main video.
+ *
+ * EN: RootEncoder draws all filters in a single full-screen quad, so
+ * EN: this filter does everything in one shader: samples the previous video and blends
+ * EN: the second camera texture only inside the configured rectangle.
+ *
+ * EN: Unlike the library's `SurfaceFilterRender`, the rotation here is applied
+ * EN: in screen coordinates (not texture coordinates), which keeps the
+ * EN: window undistorted at any aspect ratio.
  */
 @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 class PipFilterRender(
     private val onSurfaceReady: (SurfaceTexture) -> Unit
 ) : BaseFilterRender() {
 
-    /** Textura criada pelo GL; a segunda câmera escreve nela. */
+    /**
+     * PT: Textura criada pelo GL; a segunda câmera escreve nela.
+     * EN: Texture created by the GL; the second camera writes to it.
+     */
     @Volatile
     var surfaceTexture: SurfaceTexture? = null
         private set
 
-    /** Surface entregue ao Camera2 da segunda câmera. */
+    /**
+     * PT: Surface entregue ao Camera2 da segunda câmera.
+     * EN: Surface handed to the second camera's Camera2.
+     */
     @Volatile
     var surface: Surface? = null
         private set
 
-    /** O RootEncoder libera o filtro ao reiniciar o GL; não pode ser reutilizado. */
+    /**
+     * PT: O RootEncoder libera o filtro ao reiniciar o GL; não pode ser reutilizado.
+     * EN: RootEncoder releases the filter when restarting the GL; it cannot be reused.
+     */
     @Volatile
     var isReleased: Boolean = false
         private set
 
-    // Layout em percentual da imagem final (0–100), canto superior esquerdo.
+    // PT: Layout em percentual da imagem final (0–100), canto superior esquerdo.
+    // EN: Layout as a percentage of the final image (0–100), top-left corner.
     @Volatile private var leftPercent = 0f
     @Volatile private var topPercent = 0f
     @Volatile private var boxWidthPercent = 30f
@@ -68,11 +88,12 @@ class PipFilterRender(
 
     init {
         val vertices = floatArrayOf(
-            // X, Y, Z, U, V
-            -1f, -1f, 0f, 0f, 0f, // inferior esquerdo
-            1f, -1f, 0f, 1f, 0f, // inferior direito
-            -1f, 1f, 0f, 0f, 1f, // superior esquerdo
-            1f, 1f, 0f, 1f, 1f // superior direito
+            // PT: X, Y, Z, U, V
+            // EN: X, Y, Z, U, V
+            -1f, -1f, 0f, 0f, 0f, // PT: inferior esquerdo / EN: bottom left
+            1f, -1f, 0f, 1f, 0f, // PT: inferior direito / EN: bottom right
+            -1f, 1f, 0f, 0f, 1f, // PT: superior esquerdo / EN: top left
+            1f, 1f, 0f, 1f, 1f // PT: superior direito / EN: top right
         )
         squareVertex = ByteBuffer.allocateDirect(vertices.size * FLOAT_SIZE_BYTES)
             .order(ByteOrder.nativeOrder())
@@ -83,13 +104,21 @@ class PipFilterRender(
     }
 
     /**
-     * Define a janela no vídeo final.
+     * PT: Define a janela no vídeo final.
      *
-     * @param leftPercent distância da borda esquerda (0–100)
-     * @param topPercent distância do topo (0–100)
-     * @param widthPercent largura da janela (0–100)
-     * @param heightPercent altura da janela (0–100)
-     * @param rotationDegrees rotação da imagem em graus (0, 90, 180 ou 270)
+     * PT: @param leftPercent distância da borda esquerda (0–100)
+     * PT: @param topPercent distância do topo (0–100)
+     * PT: @param widthPercent largura da janela (0–100)
+     * PT: @param heightPercent altura da janela (0–100)
+     * PT: @param rotationDegrees rotação da imagem em graus (0, 90, 180 ou 270)
+     *
+     * EN: Defines the window in the final video.
+     *
+     * EN: @param leftPercent distance from the left edge (0–100)
+     * EN: @param topPercent distance from the top (0–100)
+     * EN: @param widthPercent window width (0–100)
+     * EN: @param heightPercent window height (0–100)
+     * EN: @param rotationDegrees image rotation in degrees (0, 90, 180 or 270)
      */
     fun setLayout(
         leftPercent: Float,
@@ -140,14 +169,17 @@ class PipFilterRender(
         val boxWidth = boxWidthPercent.coerceIn(0f, 100f) / 100f * canvasWidth
         val boxHeight = boxHeightPercent.coerceIn(0f, 100f) / 100f * canvasHeight
         val centerX = leftPercent.coerceIn(0f, 100f) / 100f * canvasWidth + boxWidth / 2f
-        // O layout usa o topo como origem; o shader usa Y para cima.
+        // PT: O layout usa o topo como origem; o shader usa Y para cima.
+        // EN: The layout uses the top as origin; the shader uses Y upwards.
         val centerY = canvasHeight -
             (topPercent.coerceIn(0f, 100f) / 100f * canvasHeight + boxHeight / 2f)
 
         val normalized = ((rotationDegrees % 360) + 360) % 360
         val swap = normalized == 90 || normalized == 270
-        // Dimensões do quad antes da rotação. A caixa final é o retângulo
-        // delimitador depois de girar, por isso a troca em 90/270.
+        // PT: Dimensões do quad antes da rotação. A caixa final é o retângulo
+        // PT: delimitador depois de girar, por isso a troca em 90/270.
+        // EN: Quad dimensions before rotation. The final box is the bounding
+        // EN: rectangle after rotating, hence the swap at 90/270.
         val quadWidth = if (swap) boxHeight else boxWidth
         val quadHeight = if (swap) boxWidth else boxHeight
         val angle = Math.toRadians(normalized.toDouble()).toFloat()
@@ -241,7 +273,8 @@ class PipFilterRender(
               vec2 delta = pixel - uCenter;
               float c = cos(uAngle);
               float s = sin(uAngle);
-              // Rotaciona de volta para o espaço da janela (Y para cima).
+              // PT: Rotaciona de volta para o espaço da janela (Y para cima).
+              // EN: Rotates back into window space (Y up).
               vec2 local = vec2(delta.x * c + delta.y * s, -delta.x * s + delta.y * c);
               vec2 uv = local / uQuadSize + 0.5;
               if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {

@@ -1,8 +1,10 @@
-# RootEncoder / MediaCodec
+# PT: RootEncoder / MediaCodec
+# EN: RootEncoder / MediaCodec
 -keep class com.pedro.** { *; }
 -dontwarn com.pedro.**
 
-# kotlinx.serialization
+# PT: kotlinx.serialization
+# EN: kotlinx.serialization
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.AnnotationsKt
 -keepclassmembers class kotlinx.serialization.json.** {
@@ -19,6 +21,7 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
-# OkHttp
+# PT: OkHttp
+# EN: OkHttp
 -dontwarn okhttp3.**
 -dontwarn okio.**

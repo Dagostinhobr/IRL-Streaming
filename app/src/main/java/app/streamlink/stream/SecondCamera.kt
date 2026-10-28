@@ -1,5 +1,6 @@
 package app.streamlink.stream
 
+import app.streamlink.i18n.L10n
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -17,11 +18,17 @@ import android.util.Size
 import android.view.Surface
 
 /**
- * Segunda câmera usada na janela PiP.
+ * PT: Segunda câmera usada na janela PiP.
  *
- * Abre uma câmera independente do encoder (o RootEncoder cuida da principal) e
- * envia os frames para a Surface fornecida pelo filtro de sobreposição. Exige
- * que o aparelho suporte duas câmeras simultâneas.
+ * PT: Abre uma câmera independente do encoder (o RootEncoder cuida da principal) e
+ * PT: envia os frames para a Surface fornecida pelo filtro de sobreposição. Exige
+ * PT: que o aparelho suporte duas câmeras simultâneas.
+ *
+ * EN: Second camera used in the PiP window.
+ *
+ * EN: Opens a camera independent from the encoder (RootEncoder handles the main
+ * EN: one) and sends the frames to the Surface provided by the overlay filter.
+ * EN: Requires the device to support two cameras at the same time.
  */
 class SecondCamera(context: Context) {
 
@@ -35,7 +42,8 @@ class SecondCamera(context: Context) {
     private var runningId: String? = null
     private var closed = false
 
-    /** Tamanho escolhido para a saída da segunda câmera (paisagem). */
+    // PT: Tamanho escolhido para a saída da segunda câmera (paisagem).
+    // EN: Chosen output size for the second camera (landscape).
     var outputSize: Size? = null
         private set
 
@@ -52,13 +60,13 @@ class SecondCamera(context: Context) {
         stop()
         closed = false
         val manager = manager ?: run {
-            onError("Serviço de câmera indisponível.")
+            onError(L10n.t("Serviço de câmera indisponível.", "Camera service unavailable."))
             return
         }
         val characteristics = runCatching {
             manager.getCameraCharacteristics(cameraId)
         }.getOrNull() ?: run {
-            onError("Câmera $cameraId não encontrada.")
+            onError(L10n.t("Câmera $cameraId não encontrada.", "Camera $cameraId not found."))
             return
         }
 
@@ -91,12 +99,12 @@ class SecondCamera(context: Context) {
                 session = null
                 runningId = null
                 val reason = when (error) {
-                    ERROR_CAMERA_IN_USE -> "A câmera já está em uso por outro app."
-                    ERROR_MAX_CAMERAS_IN_USE -> "O aparelho não permite duas câmeras ao mesmo tempo."
-                    ERROR_CAMERA_DISABLED -> "Câmera desativada pelo sistema."
-                    ERROR_CAMERA_DEVICE -> "Falha na câmera."
-                    ERROR_CAMERA_SERVICE -> "Serviço de câmera falhou."
-                    else -> "Erro $error ao abrir a câmera."
+                    ERROR_CAMERA_IN_USE -> L10n.t("A câmera já está em uso por outro app.", "The camera is already in use by another app.")
+                    ERROR_MAX_CAMERAS_IN_USE -> L10n.t("O aparelho não permite duas câmeras ao mesmo tempo.", "The device does not allow two cameras at the same time.")
+                    ERROR_CAMERA_DISABLED -> L10n.t("Câmera desativada pelo sistema.", "Camera disabled by the system.")
+                    ERROR_CAMERA_DEVICE -> L10n.t("Falha na câmera.", "Camera failure.")
+                    ERROR_CAMERA_SERVICE -> L10n.t("Serviço de câmera falhou.", "Camera service failed.")
+                    else -> L10n.t("Erro $error ao abrir a câmera.", "Error $error opening the camera.")
                 }
                 Log.w(TAG, "Erro na câmera $cameraId: $reason")
                 onError(reason)
@@ -106,7 +114,7 @@ class SecondCamera(context: Context) {
         if (appContext.checkSelfPermission(Manifest.permission.CAMERA) !=
             PackageManager.PERMISSION_GRANTED
         ) {
-            onError("Permissão de câmera não concedida.")
+            onError(L10n.t("Permissão de câmera não concedida.", "Camera permission not granted."))
             return
         }
         try {
@@ -114,7 +122,7 @@ class SecondCamera(context: Context) {
             runningId = cameraId
         } catch (t: Throwable) {
             Log.e(TAG, "Não foi possível abrir a câmera $cameraId", t)
-            onError(t.message ?: "Não foi possível abrir a segunda câmera.")
+            onError(t.message ?: L10n.t("Não foi possível abrir a segunda câmera.", "Could not open the second camera."))
         }
     }
 
@@ -147,7 +155,7 @@ class SecondCamera(context: Context) {
                 }
             }
         }.getOrElse {
-            onError("Não foi possível preparar a segunda câmera.")
+            onError(L10n.t("Não foi possível preparar a segunda câmera.", "Could not prepare the second camera."))
             return
         }
 
@@ -165,14 +173,14 @@ class SecondCamera(context: Context) {
                     onStarted()
                 }.onFailure {
                     Log.e(TAG, "Falha ao iniciar a segunda câmera", it)
-                    onError("Falha ao iniciar a segunda câmera.")
+                    onError(L10n.t("Falha ao iniciar a segunda câmera.", "Failed to start the second camera."))
                 }
             }
 
             override fun onConfigureFailed(created: CameraCaptureSession) {
                 created.close()
                 session = null
-                onError("O aparelho recusou a segunda câmera.")
+                onError(L10n.t("O aparelho recusou a segunda câmera.", "The device refused the second camera."))
             }
         }
 
@@ -180,7 +188,7 @@ class SecondCamera(context: Context) {
             camera.createCaptureSession(listOf(surface), sessionCallback, handler)
         } catch (t: Throwable) {
             Log.e(TAG, "Falha ao criar a sessão da segunda câmera", t)
-            onError("Falha ao criar a sessão da segunda câmera.")
+            onError(L10n.t("Falha ao criar a sessão da segunda câmera.", "Failed to create the second camera session."))
         }
     }
 
@@ -205,7 +213,8 @@ class SecondCamera(context: Context) {
         ) ?: return null
         val sizes = map.getOutputSizes(SurfaceTexture::class.java)?.toList().orEmpty()
         if (sizes.isEmpty()) return null
-        // Prefere 16:9 em torno de 720p; evita resoluções gigantes na janelinha.
+        // PT: Prefere 16:9 em torno de 720p; evita resoluções gigantes na janelinha.
+        // EN: Prefers 16:9 around 720p; avoids huge resolutions in the small window.
         return sizes
             .filter { it.width >= it.height }
             .minByOrNull { size ->

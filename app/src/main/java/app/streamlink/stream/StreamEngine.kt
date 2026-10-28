@@ -7,6 +7,7 @@ import android.os.SystemClock
 import android.util.Log
 import android.view.MotionEvent
 import android.view.SurfaceView
+import app.streamlink.i18n.L10n
 import app.streamlink.data.AppSettings
 import app.streamlink.data.CodecSetting
 import app.streamlink.data.DualCameraSettings
@@ -37,15 +38,21 @@ import java.util.Locale
 import kotlin.math.log10
 
 /**
- * Encapsula o RootEncoder (RTMP/RTMPS/SRT/RTSP) e a câmera.
- * Toda a API é pensada para ser chamada da main thread (como no exemplo oficial da lib).
+ * PT: Encapsula o RootEncoder (RTMP/RTMPS/SRT/RTSP) e a câmera.
+ * PT: Toda a API é pensada para ser chamada da main thread (como no exemplo oficial da lib).
+ *
+ * EN: Wraps RootEncoder (RTMP/RTMPS/SRT/RTSP) and the camera.
+ * EN: The whole API is meant to be called from the main thread (as in the library's official example).
  */
 class StreamEngine(private val context: Context) : ConnectChecker {
 
     private val _state = MutableStateFlow(StreamUiState())
     val state: StateFlow<StreamUiState> = _state.asStateFlow()
 
-    /** Nível do microfone (0..1) para o VU meter, atualizado em tempo real. */
+    /**
+     * PT: Nível do microfone (0..1) para o VU meter, atualizado em tempo real.
+     * EN: Microphone level (0..1) for the VU meter, updated in real time.
+     */
     private val _micLevel = MutableStateFlow(0f)
     val micLevel: StateFlow<Float> = _micLevel.asStateFlow()
 
@@ -57,7 +64,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     private var autoReconnect = true
     private var recordFile: File? = null
 
-    // Composição PiP (segunda câmera sobre a principal)
+    // PT: Composição PiP (segunda câmera sobre a principal)
+    // EN: PiP composition (second camera over the main one)
     private var pipFilter: PipFilterRender? = null
     private var secondCamera: SecondCamera? = null
     private var pipCameraId: String? = null
@@ -66,11 +74,15 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     /**
-     * Garante que o encoder correto esteja criado: WHIP (WebRTC) para links http(s)
-     * e GenericStream (RTMP/RTMPS/SRT/RTSP/UDP) para os demais protocolos.
+     * PT: Garante que o encoder correto esteja criado: WHIP (WebRTC) para links http(s)
+     * PT: e GenericStream (RTMP/RTMPS/SRT/RTSP/UDP) para os demais protocolos.
+     *
+     * EN: Ensures the correct encoder is created: WHIP (WebRTC) for http(s) links
+     * EN: and GenericStream (RTMP/RTMPS/SRT/RTSP/UDP) for the other protocols.
      */
     private fun encoderFor(protocol: StreamProtocol, requestedCameraId: String): StreamBase {
-        // Se a câmera USB foi removida, cai para a câmera nativa em vez de ficar em ecrã negro.
+        // PT: Se a câmera USB foi removida, cai para a câmera nativa em vez de ficar em ecrã negro.
+        // EN: If the USB camera was removed, falls back to the native camera instead of showing a black screen.
         val cameraId = if (CameraCapabilities.isUsbCameraId(requestedCameraId) &&
             CameraCapabilities.usbCameras(context).none { it.id == requestedCameraId }
         ) {
@@ -92,8 +104,10 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         preparedConfig = null
         _micLevel.value = 0f
 
-        // Fontes explícitas: a de áudio mede o nível para o VU meter sem
-        // alterar o PCM entregue ao encoder.
+        // PT: Fontes explícitas: a de áudio mede o nível para o VU meter sem
+        // PT: alterar o PCM entregue ao encoder.
+        // EN: Explicit sources: the audio one measures the level for the VU meter
+        // EN: without changing the PCM delivered to the encoder.
         val usb = CameraCapabilities.isUsbCameraId(cameraId)
         val video: VideoSource = if (usb) {
             UvcVideoSource(context, CameraCapabilities.usbDeviceName(cameraId))
@@ -132,7 +146,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         val encoder = encoderFor(protocol, settings.cameraId)
         if (preparedConfig == config) {
             applyAudioInput(settings)
-            // Garante o VU meter ativo mesmo quando a configuração não mudou.
+            // PT: Garante o VU meter ativo mesmo quando a configuração não mudou.
+            // EN: Ensures the VU meter is active even when the configuration did not change.
             microphone()?.startMonitoring()
             applyDualCamera(settings)
             return true
@@ -142,7 +157,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
             val previewTarget = previewView
             val wasPreviewing = hadPreview || encoder.isOnPreview
             if (wasPreviewing) {
-                // O GL é reiniciado abaixo e libera todos os filtros: recria o PiP depois.
+                // PT: O GL é reiniciado abaixo e libera todos os filtros: recria o PiP depois.
+                // EN: The GL is restarted below and releases all filters: recreates the PiP afterwards.
                 releaseDualCamera()
                 encoder.stopPreview(true)
             }
@@ -165,12 +181,18 @@ class StreamEngine(private val context: Context) : ConnectChecker {
             )
 
             if (!videoOk || !audioOk) {
-                setError("O dispositivo não suporta esta configuração de vídeo/áudio.")
+                setError(
+                    L10n.t(
+                        "O dispositivo não suporta esta configuração de vídeo/áudio.",
+                        "The device does not support this video/audio configuration."
+                    )
+                )
                 return false
             }
 
             applyAudioInput(settings)
-            // O microfone passa a captar já no preview para alimentar o VU meter.
+            // PT: O microfone passa a captar já no preview para alimentar o VU meter.
+            // EN: The microphone starts capturing already in preview to feed the VU meter.
             microphone()?.startMonitoring()
 
             preparedConfig = config
@@ -192,7 +214,10 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         } catch (error: Exception) {
             Log.e(TAG, "Falha ao preparar encoder", error)
             preparedConfig = null
-            setError(error.message ?: "Falha ao preparar a câmera/encoder.")
+            setError(
+                error.message
+                    ?: L10n.t("Falha ao preparar a câmera/encoder.", "Failed to prepare the camera/encoder.")
+            )
             false
         }
     }
@@ -202,7 +227,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         if (!prepare(settings)) return
         val encoder = stream ?: return
         if (encoder.isOnPreview) return
-        // O preview está sendo (re)iniciado; o GL pode ter liberado o filtro antigo.
+        // PT: O preview está sendo (re)iniciado; o GL pode ter liberado o filtro antigo.
+        // EN: The preview is being (re)started; the GL may have released the old filter.
         releaseDualCamera()
         runCatching {
             encoder.startPreview(view, true)
@@ -214,12 +240,19 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     /**
-     * Liberta a câmera e o microfone do preview nativo.
+     * PT: Liberta a câmera e o microfone do preview nativo.
      *
-     * Usado ao entrar no estúdio P2P: o WebView precisa de abrir a câmera e o
-     * microfone com `getUserMedia`, e o Android não permite dois clientes no
-     * mesmo sensor em muitos aparelhos. A configuração preparada é mantida para
-     * que o preview nativo possa voltar rapidamente ao sair do estúdio.
+     * PT: Usado ao entrar no estúdio P2P: o WebView precisa de abrir a câmera e o
+     * PT: microfone com `getUserMedia`, e o Android não permite dois clientes no
+     * PT: mesmo sensor em muitos aparelhos. A configuração preparada é mantida para
+     * PT: que o preview nativo possa voltar rapidamente ao sair do estúdio.
+     *
+     * EN: Releases the camera and microphone from the native preview.
+     *
+     * EN: Used when entering the P2P studio: the WebView needs to open the camera and
+     * EN: microphone with `getUserMedia`, and Android does not allow two clients on
+     * EN: the same sensor on many devices. The prepared configuration is kept so
+     * EN: the native preview can come back quickly when leaving the studio.
      */
     fun pausePreview() {
         releaseDualCamera()
@@ -227,7 +260,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         if (encoder != null) {
             runCatching { if (encoder.isOnPreview) encoder.stopPreview(true) }
         }
-        // Encerra o AudioRecord do VU meter para deixar o microfone ao WebRTC.
+        // PT: Encerra o AudioRecord do VU meter para deixar o microfone ao WebRTC.
+        // EN: Stops the VU meter's AudioRecord to leave the microphone to WebRTC.
         microphone()?.stopMonitoring()
         previewView = null
         _micLevel.value = 0f
@@ -245,14 +279,24 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         val encoder = stream ?: return false
         val endpoint = target.endpoint()
         if (endpoint.isBlank()) {
-            setError("Configure a URL de ingest do destino \"${target.name}\".")
+            setError(
+                L10n.t(
+                    "Configure a URL de ingest do destino \"${target.name}\"." ,
+                    "Set the ingest URL for the target \"${target.name}\"."
+                )
+            )
             return false
         }
         if (!endpoint.startsWith("rtmp", true) && !endpoint.startsWith("srt", true) &&
             !endpoint.startsWith("rtsp", true) && !endpoint.startsWith("udp", true) &&
             !endpoint.startsWith("http", true)
         ) {
-            setError("Protocolo não suportado. Use rtmp://, rtmps://, srt://, rtsp://, udp:// ou https:// (WHIP)")
+            setError(
+                L10n.t(
+                    "Protocolo não suportado. Use rtmp://, rtmps://, srt://, rtsp://, udp:// ou https:// (WHIP)",
+                    "Unsupported protocol. Use rtmp://, rtmps://, srt://, rtsp://, udp:// or https:// (WHIP)"
+                )
+            )
             return false
         }
 
@@ -277,7 +321,13 @@ class StreamEngine(private val context: Context) : ConnectChecker {
             true
         } catch (error: Exception) {
             Log.e(TAG, "Falha ao iniciar stream", error)
-            setError(error.message ?: "Não foi possível iniciar a transmissão.")
+            setError(
+                error.message
+                    ?: L10n.t(
+                        "Não foi possível iniciar a transmissão.",
+                        "Could not start the stream."
+                    )
+            )
             false
         }
     }
@@ -317,15 +367,22 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     // ---------------------------------------------------------------------
-    // Câmera
+    // PT: Câmera
+    // EN: Camera
     // ---------------------------------------------------------------------
 
     /**
-     * Aplica uma nova orientação ao preview/transmissão em curso.
+     * PT: Aplica uma nova orientação ao preview/transmissão em curso.
      *
-     * A resolução de saída só é reconstruída no próximo `prepare`; aqui
-     * rodamos a câmera imediatamente para o vídeo acompanhar o sensor (modo
-     * automático) sem interromper a conexão.
+     * PT: A resolução de saída só é reconstruída no próximo `prepare`; aqui
+     * PT: rodamos a câmera imediatamente para o vídeo acompanhar o sensor (modo
+     * PT: automático) sem interromper a conexão.
+     *
+     * EN: Applies a new orientation to the running preview/stream.
+     *
+     * EN: The output resolution is only rebuilt on the next `prepare`; here we
+     * EN: rotate the camera immediately so the video follows the sensor
+     * EN: (automatic mode) without interrupting the connection.
      */
     fun applyLiveOrientation(orientation: VideoOrientation) {
         val encoder = stream ?: return
@@ -346,7 +403,7 @@ class StreamEngine(private val context: Context) : ConnectChecker {
                 )
             }
             updateZoomRange()
-        }.onFailure { setError("Não foi possível trocar de câmera.") }
+        }.onFailure { setError(L10n.t("Não foi possível trocar de câmera.", "Could not switch camera.")) }
     }
 
     fun toggleTorch() {
@@ -359,7 +416,7 @@ class StreamEngine(private val context: Context) : ConnectChecker {
                 camera.enableLantern()
             }
             _state.update { it.copy(torchOn = !it.torchOn) }
-        }.onFailure { setError("Lanterna indisponível nesta câmera.") }
+        }.onFailure { setError(L10n.t("Lanterna indisponível nesta câmera.", "Torch unavailable on this camera.")) }
     }
 
     fun toggleMute() {
@@ -379,8 +436,11 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     /**
-     * Liga/desliga a captura usada pelo VU meter. Não interrompe uma
-     * transmissão/gravação nativa em curso, porque o encoder precisa do áudio.
+     * PT: Liga/desliga a captura usada pelo VU meter. Não interrompe uma
+     * PT: transmissão/gravação nativa em curso, porque o encoder precisa do áudio.
+     *
+     * EN: Turns the capture used by the VU meter on/off. Does not interrupt a
+     * EN: native stream/recording in progress, because the encoder needs the audio.
      */
     fun setMicMonitoring(enabled: Boolean) {
         val mic = microphone() ?: return
@@ -428,24 +488,38 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     // ---------------------------------------------------------------------
-    // PiP com duas câmeras
+    // PT: PiP com duas câmeras
+    // EN: PiP with two cameras
     // ---------------------------------------------------------------------
 
-    /** O aparelho suporta abrir duas câmeras ao mesmo tempo? */
+    /**
+     * PT: O aparelho suporta abrir duas câmeras ao mesmo tempo?
+     * EN: Does the device support opening two cameras at the same time?
+     */
     fun dualCameraSupported(): Boolean = CameraCapabilities.supportsDualCamera(context)
 
-    /** Limpa o aviso de erro do modo PiP (chamado ao fechar o diálogo/aviso). */
+    /**
+     * PT: Limpa o aviso de erro do modo PiP (chamado ao fechar o diálogo/aviso).
+     * EN: Clears the PiP mode error notice (called when closing the dialog/notice).
+     */
     fun clearDualCameraError() {
         _state.update { it.copy(dualCameraError = null) }
     }
 
     /**
-     * Sincroniza a composição PiP com as preferências.
+     * PT: Sincroniza a composição PiP com as preferências.
      *
-     * A câmera principal continua sendo a do RootEncoder (preview, zoom, lanterna
-     * e troca de câmera funcionam normalmente). A segunda câmera é aberta aqui e
-     * desenhada sobre o vídeo por um [PipFilterRender], com posição e tamanho
-     * configuráveis. Nada é alterado quando o modo está desligado.
+     * PT: A câmera principal continua sendo a do RootEncoder (preview, zoom, lanterna
+     * PT: e troca de câmera funcionam normalmente). A segunda câmera é aberta aqui e
+     * PT: desenhada sobre o vídeo por um [PipFilterRender], com posição e tamanho
+     * PT: configuráveis. Nada é alterado quando o modo está desligado.
+     *
+     * EN: Syncs the PiP composition with the preferences.
+     *
+     * EN: The main camera remains the RootEncoder one (preview, zoom, torch
+     * EN: and camera switching work normally). The second camera is opened here and
+     * EN: drawn over the video by a [PipFilterRender], with configurable position
+     * EN: and size. Nothing is changed when the mode is off.
      */
     fun applyDualCamera(settings: AppSettings) {
         dualSettings = settings.dualCamera
@@ -456,7 +530,10 @@ class StreamEngine(private val context: Context) : ConnectChecker {
                 it.copy(
                     dualCameraActive = false,
                     dualCameraError = if (settings.dualCamera.enabled) {
-                        "PiP com duas câmeras não está disponível com câmera USB."
+                        L10n.t(
+                            "PiP com duas câmeras não está disponível com câmera USB.",
+                            "Two-camera PiP is not available with a USB camera."
+                        )
                     } else {
                         null
                     }
@@ -474,7 +551,10 @@ class StreamEngine(private val context: Context) : ConnectChecker {
             _state.update {
                 it.copy(
                     dualCameraActive = false,
-                    dualCameraError = "Este aparelho não permite duas câmeras ao mesmo tempo."
+                    dualCameraError = L10n.t(
+                        "Este aparelho não permite duas câmeras ao mesmo tempo.",
+                        "This device does not allow two cameras at the same time."
+                    )
                 )
             }
             return
@@ -489,7 +569,10 @@ class StreamEngine(private val context: Context) : ConnectChecker {
             _state.update {
                 it.copy(
                     dualCameraActive = false,
-                    dualCameraError = "Não há duas câmeras disponíveis para o modo PiP."
+                    dualCameraError = L10n.t(
+                        "Não há duas câmeras disponíveis para o modo PiP.",
+                        "There are no two cameras available for PiP mode."
+                    )
                 )
             }
             return
@@ -497,7 +580,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         val (main, pip) = pair
         pendingPipId = pip.id
 
-        // Garante que a câmera principal seja a escolhida.
+        // PT: Garante que a câmera principal seja a escolhida.
+        // EN: Ensures the main camera is the chosen one.
         val mainCamera = camera()
         if (mainCamera != null && mainCamera.getCurrentCameraId() != main.id) {
             secondCamera?.stop()
@@ -506,7 +590,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
                 .onFailure { Log.w(TAG, "Falha ao abrir a câmera principal", it) }
             _state.update { it.copy(frontCamera = main.isFront, torchOn = false) }
             updateZoomRange()
-            // Dá tempo do Camera2Source liberar a câmera antes de abrir a segunda.
+            // PT: Dá tempo do Camera2Source liberar a câmera antes de abrir a segunda.
+            // EN: Gives Camera2Source time to release the camera before opening the second one.
             mainHandler.postDelayed({ startPipWhenReady() }, 500)
         } else {
             startPipWhenReady()
@@ -519,14 +604,16 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     private fun ensurePipFilter(encoder: StreamBase): PipFilterRender? {
         pipFilter?.let { existing ->
             if (!existing.isReleased) return existing
-            // O GL foi reiniciado e liberou o filtro: a Surface antiga não serve mais.
+            // PT: O GL foi reiniciado e liberou o filtro: a Surface antiga não serve mais.
+            // EN: The GL was restarted and released the filter: the old Surface is no longer valid.
             pipFilter = null
             secondCamera?.stop()
             pipCameraId = null
         }
         val gl = runCatching { encoder.getGlInterface() }.getOrNull() ?: return null
         val filter = PipFilterRender { texture ->
-            // Executado na main thread quando o filtro é inicializado no GL.
+            // PT: Executado na main thread quando o filtro é inicializado no GL.
+            // EN: Runs on the main thread when the filter is initialized in the GL.
             val id = pendingPipId
             if (id.isNotBlank()) startPipCamera(id, texture)
         }
@@ -541,7 +628,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         val surface = filter?.surface
         val texture = filter?.surfaceTexture
         if (surface == null || texture == null) {
-            // O filtro ainda não foi inicializado pelo GL; o callback fará o resto.
+            // PT: O filtro ainda não foi inicializado pelo GL; o callback fará o resto.
+            // EN: The filter has not been initialized by the GL yet; the callback will do the rest.
             return
         }
         val id = pendingPipId
@@ -582,8 +670,11 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     /**
-     * Posiciona a janela sobre o vídeo. As medidas são percentuais da imagem
-     * final (0–100), com origem no canto superior esquerdo.
+     * PT: Posiciona a janela sobre o vídeo. As medidas são percentuais da imagem
+     * PT: final (0–100), com origem no canto superior esquerdo.
+     *
+     * EN: Positions the window over the video. Measurements are percentages of the
+     * EN: final image (0–100), with the origin at the top-left corner.
      */
     private fun updatePipLayout(
         filter: PipFilterRender?,
@@ -597,7 +688,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         val widthFraction = settings.sizePercent.coerceIn(10, 50) / 100f
         val rotation = ((settings.rotation % 360) + 360) % 360
 
-        // Proporção da imagem da segunda câmera (paisagem, como o Camera2 entrega).
+        // PT: Proporção da imagem da segunda câmera (paisagem, como o Camera2 entrega).
+        // EN: Aspect ratio of the second camera image (landscape, as Camera2 delivers it).
         val output = secondCamera?.outputSize
         val imageAspect = if (output != null && output.width > 0) {
             output.height.toFloat() / output.width
@@ -654,7 +746,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     // ---------------------------------------------------------------------
-    // Gravação local
+    // PT: Gravação local
+    // EN: Local recording
     // ---------------------------------------------------------------------
 
     fun startRecording(): Boolean {
@@ -674,7 +767,12 @@ class StreamEngine(private val context: Context) : ConnectChecker {
             true
         } catch (error: Exception) {
             Log.e(TAG, "Falha ao gravar", error)
-            setError("Não foi possível iniciar a gravação: ${error.message}")
+            setError(
+                L10n.t(
+                    "Não foi possível iniciar a gravação: ${error.message}",
+                    "Could not start recording: ${error.message}"
+                )
+            )
             false
         }
     }
@@ -687,7 +785,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     // ---------------------------------------------------------------------
-    // Estatísticas / ConnectChecker
+    // PT: Estatísticas / ConnectChecker
+    // EN: Statistics / ConnectChecker
     // ---------------------------------------------------------------------
 
     fun refreshStats() {
@@ -759,7 +858,12 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     override fun onAuthError() {
-        setError("Falha de autenticação no servidor de destino.")
+        setError(
+            L10n.t(
+                "Falha de autenticação no servidor de destino.",
+                "Authentication failed on the target server."
+            )
+        )
     }
 
     override fun onAuthSuccess() = Unit
@@ -783,9 +887,13 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         stream?.audioSource as? MeteredMicrophoneSource
 
     /**
-     * Atualiza o VU meter com o pico captado desde a última chamada.
-     * Ataque rápido e decaimento suave, para o medidor acompanhar a fala sem
-     * "tremer". Chamado pela interface a cada ~60 ms.
+     * PT: Atualiza o VU meter com o pico captado desde a última chamada.
+     * PT: Ataque rápido e decaimento suave, para o medidor acompanhar a fala sem
+     * PT: "tremer". Chamado pela interface a cada ~60 ms.
+     *
+     * EN: Updates the VU meter with the peak captured since the last call.
+     * EN: Fast attack and smooth decay, so the meter follows speech without
+     * EN: "shaking". Called by the UI every ~60 ms.
      */
     fun refreshMicLevel() {
         val mic = microphone()
@@ -800,7 +908,10 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         _micLevel.value = if (next < 0.004f) 0f else next
     }
 
-    /** Converte amplitude linear (0..1) para a escala do medidor (dB -60..0). */
+    /**
+     * PT: Converte amplitude linear (0..1) para a escala do medidor (dB -60..0).
+     * EN: Converts linear amplitude (0..1) to the meter scale (dB -60..0).
+     */
     private fun linearToMeter(linear: Float): Float {
         if (linear <= 0.0006f) return 0f
         val db = (20.0 * log10(linear.toDouble())).coerceIn(MIN_MIC_DB, 0.0)
@@ -808,8 +919,11 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     /**
-     * Aplica a entrada de áudio escolhida (microfone USB, fone, Bluetooth...) ao encoder.
-     * Com [AppSettings.audioInputId] = -1 usa o microfone interno do aparelho.
+     * PT: Aplica a entrada de áudio escolhida (microfone USB, fone, Bluetooth...) ao encoder.
+     * PT: Com [AppSettings.audioInputId] = -1 usa o microfone interno do aparelho.
+     *
+     * EN: Applies the chosen audio input (USB microphone, headset, Bluetooth...) to the encoder.
+     * EN: With [AppSettings.audioInputId] = -1 it uses the device's built-in microphone.
      */
     fun applyAudioInput(settings: AppSettings) {
         val mic = microphone() ?: return
@@ -822,7 +936,10 @@ class StreamEngine(private val context: Context) : ConnectChecker {
             .onFailure { Log.w(TAG, "Não foi possível selecionar o microfone", it) }
     }
 
-    /** Nome do microfone em uso, útil para mostrar na interface. */
+    /**
+     * PT: Nome do microfone em uso, útil para mostrar na interface.
+     * EN: Name of the microphone in use, useful for displaying in the UI.
+     */
     fun currentAudioInputName(settings: AppSettings): String? {
         val device = if (settings.audioInputId < 0) {
             AudioDevices.builtIn(context)
@@ -850,7 +967,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         val videoBitrate = videoBitrateKbps * 1000
         val outputWidth = if (orientation == VideoOrientation.PORTRAIT) resolution.height else resolution.width
         val outputHeight = if (orientation == VideoOrientation.PORTRAIT) resolution.width else resolution.height
-        // O WHIP do VDO.Ninja é mais compatível com H.264; HEVC fica restrito a RTMP/RTSP.
+        // PT: O WHIP do VDO.Ninja é mais compatível com H.264; HEVC fica restrito a RTMP/RTSP.
+        // EN: VDO.Ninja WHIP is more compatible with H.264; HEVC is restricted to RTMP/RTSP.
         val effectiveCodec = if (protocol == StreamProtocol.WHIP) CodecSetting.H264 else codec
         return StreamConfig(
             protocol = protocol,
@@ -892,7 +1010,10 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     companion object {
         private const val TAG = "StreamEngine"
 
-        /** Fundo de escala do VU meter: abaixo disto o microfone é considerado em silêncio. */
+        /**
+         * PT: Fundo de escala do VU meter: abaixo disto o microfone é considerado em silêncio.
+         * EN: VU meter floor: below this the microphone is considered silent.
+         */
         private const val MIN_MIC_DB = -60.0
     }
 }

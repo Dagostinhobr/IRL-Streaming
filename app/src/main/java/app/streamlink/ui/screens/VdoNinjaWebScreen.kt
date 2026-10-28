@@ -40,6 +40,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import app.streamlink.i18n.tr
 import app.streamlink.ui.theme.Ink
 import app.streamlink.ui.theme.TextPrimary
 import app.streamlink.util.AudioRouting
@@ -47,11 +48,17 @@ import app.streamlink.util.hasStreamPermissions
 import app.streamlink.util.requiredPermissions
 
 /**
- * Estúdio P2P do VDO.Ninja rodando no WebView do próprio app.
+ * PT: Estúdio P2P do VDO.Ninja rodando no WebView do próprio app.
  *
- * O WebRTC é negociado pelo navegador (peer-to-peer), e o app apenas concede as
- * permissões de câmera/microfone solicitadas pela página. Dessa forma o microfone
- * USB configurado como padrão no Android também é utilizado.
+ * PT: O WebRTC é negociado pelo navegador (peer-to-peer), e o app apenas concede as
+ * PT: permissões de câmera/microfone solicitadas pela página. Dessa forma o microfone
+ * PT: USB configurado como padrão no Android também é utilizado.
+ *
+ * EN: VDO.Ninja P2P studio running in the app's own WebView.
+ *
+ * EN: WebRTC is negotiated by the browser (peer-to-peer), and the app only grants the
+ * EN: camera/microphone permissions requested by the page. This way the USB
+ * EN: microphone set as default in Android is also used.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("SetJavaScriptEnabled")
@@ -72,13 +79,19 @@ fun VdoNinjaWebScreen(
     ) { }
 
     LaunchedEffect(Unit) {
-        // Liberta o microfone nativo (VU meter) antes de o WebView captar.
-        // Não forçamos um AudioDeviceInfo do encoder aqui: no WebView o
-        // WebRTC usa o microfone padrão do sistema (USB/fone têm prioridade),
-        // que é o mesmo que o VDO.Ninja seleciona com `audiodevice=1`.
+        // PT: Liberta o microfone nativo (VU meter) antes de o WebView captar.
+        // PT: Não forçamos um AudioDeviceInfo do encoder aqui: no WebView o
+        // PT: WebRTC usa o microfone padrão do sistema (USB/fone têm prioridade),
+        // PT: que é o mesmo que o VDO.Ninja seleciona com `audiodevice=1`.
+        // EN: Releases the native microphone (VU meter) before the WebView captures.
+        // EN: We do not force an encoder AudioDeviceInfo here: in the WebView
+        // EN: WebRTC uses the system default microphone (USB/headset take priority),
+        // EN: which is the same one VDO.Ninja selects with `audiodevice=1`.
         onEnter()
-        // Limpa qualquer dispositivo de comunicação forçado anteriormente: um
-        // id guardado que já não existe faz o WebRTC falhar com NotReadableError.
+        // PT: Limpa qualquer dispositivo de comunicação forçado anteriormente: um
+        // PT: id guardado que já não existe faz o WebRTC falhar com NotReadableError.
+        // EN: Clears any previously forced communication device: a stored
+        // EN: id that no longer exists makes WebRTC fail with NotReadableError.
         AudioRouting.clearPreferredInput(context)
         if (!hasStreamPermissions(context)) {
             permissionLauncher.launch(requiredPermissions())
@@ -97,12 +110,12 @@ fun VdoNinjaWebScreen(
                 title = { Text(title, fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Voltar", "Back"))
                     }
                 },
                 actions = {
                     IconButton(onClick = { webView?.reload() }) {
-                        Icon(Icons.Filled.Refresh, contentDescription = "Recarregar")
+                        Icon(Icons.Filled.Refresh, contentDescription = tr("Recarregar", "Reload"))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -179,9 +192,13 @@ fun VdoNinjaWebScreen(
 }
 
 /**
- * Fallback de autostart: o VDO.Ninja às vezes exibe a tela "Share your Camera"
- * mesmo com &autostart&webcam. Este script clica no botão assim que ele aparece,
- * repetindo por até ~20 segundos (o React pode renderizar depois do onPageFinished).
+ * PT: Fallback de autostart: o VDO.Ninja às vezes exibe a tela "Share your Camera"
+ * PT: mesmo com &autostart&webcam. Este script clica no botão assim que ele aparece,
+ * PT: repetindo por até ~20 segundos (o React pode renderizar depois do onPageFinished).
+ *
+ * EN: Autostart fallback: VDO.Ninja sometimes shows the "Share your Camera" screen
+ * EN: even with &autostart&webcam. This script clicks the button as soon as it appears,
+ * EN: repeating for up to ~20 seconds (React may render after onPageFinished).
  */
 private const val AUTOSTART_JS = """
 (function() {
@@ -216,7 +233,10 @@ private const val AUTOSTART_JS = """
 })();
 """
 
-/** Concede câmera/microfone à página apenas se o app já tem as permissões. */
+/**
+ * PT: Concede câmera/microfone à página apenas se o app já tem as permissões.
+ * EN: Grants camera/microphone to the page only if the app already has the permissions.
+ */
 private fun grantWebPermissions(context: Context, request: PermissionRequest) {
     val camera = request.resources.contains(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
     val microphone = request.resources.contains(PermissionRequest.RESOURCE_AUDIO_CAPTURE)

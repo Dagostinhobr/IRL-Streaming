@@ -4,10 +4,16 @@ import kotlinx.serialization.Serializable
 import java.util.UUID
 
 @Serializable
-enum class VideoOrientation(val label: String) {
-    AUTO("Automático (sensor)"),
-    PORTRAIT("Retrato (vertical)"),
-    LANDSCAPE("Paisagem (horizontal)")
+enum class AppLanguage(val tag: String, val nativeName: String) {
+    PT("pt", "Português"),
+    EN("en", "English")
+}
+
+@Serializable
+enum class VideoOrientation(val label: String, val labelEn: String) {
+    AUTO("Automático (sensor)", "Automatic (sensor)"),
+    PORTRAIT("Retrato (vertical)", "Portrait (vertical)"),
+    LANDSCAPE("Paisagem (horizontal)", "Landscape (horizontal)")
 }
 
 @Serializable
@@ -33,22 +39,25 @@ enum class StreamProtocol {
 }
 
 @Serializable
-enum class ChatProvider(val label: String) {
-    TWITCH("Twitch"),
-    DISABLED("Desativado")
+enum class ChatProvider(val label: String, val labelEn: String) {
+    TWITCH("Twitch", "Twitch"),
+    DISABLED("Desativado", "Disabled")
 }
 
-/** Como o destino é publicado: encoder nativo do app ou estúdio P2P no navegador. */
+/**
+ * PT: Como o destino é publicado: encoder nativo do app ou estúdio P2P no navegador.
+ * EN: How the target is published: the app's native encoder or the P2P studio in the browser.
+ */
 @Serializable
-enum class TargetKind(val label: String) {
-    NATIVE("Nativo"),
-    VDO_P2P("VDO.Ninja P2P")
+enum class TargetKind(val label: String, val labelEn: String) {
+    NATIVE("Nativo", "Native"),
+    VDO_P2P("VDO.Ninja P2P", "VDO.Ninja P2P")
 }
 
 @Serializable
 data class StreamTarget(
     val id: String = UUID.randomUUID().toString(),
-    val name: String = "Novo destino",
+    val name: String = app.streamlink.i18n.L10n.t("Novo destino", "New target"),
     val url: String = "",
     val streamKey: String = "",
     val backupUrl: String = "",
@@ -56,7 +65,8 @@ data class StreamTarget(
 ) {
     val protocol: StreamProtocol
         get() = if (kind == TargetKind.VDO_P2P) {
-            // O destino P2P não usa o encoder nativo; RTMP mantém o preview neutro.
+            // PT: O destino P2P não usa o encoder nativo; RTMP mantém o preview neutro.
+            // EN: The P2P target does not use the native encoder; RTMP keeps the preview neutral.
             StreamProtocol.RTMP
         } else {
             when {
@@ -70,11 +80,17 @@ data class StreamTarget(
             }
         }
 
-    /** Rótulo curto usado nos cartões/pílulas da interface. */
+    /**
+     * PT: Rótulo curto usado nos cartões/pílulas da interface.
+     * EN: Short label used on the UI cards/pills.
+     */
     val badge: String
         get() = if (kind == TargetKind.VDO_P2P) "P2P" else protocol.name
 
-    /** URL final usada pelo encoder. Para SRT/RTSP o campo streamKey é ignorado. */
+    /**
+     * PT: URL final usada pelo encoder. Para SRT/RTSP o campo streamKey é ignorado.
+     * EN: Final URL used by the encoder. For SRT/RTSP the streamKey field is ignored.
+     */
     fun endpoint(): String {
         val base = url.trim()
         if (base.isEmpty()) return ""
@@ -85,11 +101,18 @@ data class StreamTarget(
         return base.trimEnd('/') + "/" + streamKey.trim().trimStart('/')
     }
 
-    /** Versão segura para exibição em tela (esconde a chave). */
+    /**
+     * PT: Versão segura para exibição em tela (esconde a chave).
+     * EN: Safe version for on-screen display (hides the key).
+     */
     fun displayEndpoint(): String {
-        if (kind == TargetKind.VDO_P2P) return "Estúdio WebRTC (P2P)"
+        if (kind == TargetKind.VDO_P2P) {
+            return app.streamlink.i18n.L10n.t("Estúdio WebRTC (P2P)", "WebRTC studio (P2P)")
+        }
         val base = url.trim()
-        if (base.isEmpty()) return "URL não configurada"
+        if (base.isEmpty()) {
+            return app.streamlink.i18n.L10n.t("URL não configurada", "URL not configured")
+        }
         return if (streamKey.isBlank()) base else "$base/••••••••"
     }
 }
@@ -106,17 +129,24 @@ data class ChatSettings(
 )
 
 /**
- * Preferências da integração com o VDO.Ninja.
- * O app gera os links de publicação/visualização (P2P via navegador) e também
- * pode publicar nativamente via WHIP usando a câmera e o microfone do aparelho.
+ * PT: Preferências da integração com o VDO.Ninja.
+ * PT: O app gera os links de publicação/visualização (P2P via navegador) e também
+ * PT: pode publicar nativamente via WHIP usando a câmera e o microfone do aparelho.
+ *
+ * EN: VDO.Ninja integration preferences.
+ * EN: The app generates the publish/view links (P2P via browser) and can also
+ * EN: publish natively via WHIP using the device's camera and microphone.
  */
 @Serializable
 data class VdoNinjaSettings(
     val host: String = "https://vdo.ninja",
     val whipHost: String = "https://whip.vdo.ninja",
     /**
-     * ID de ligação (Stream ID do VDO.Ninja). Quando preenchido, os links usam
-     * `?push=ID` / `?view=ID` e a sala fica apenas como agrupamento opcional.
+     * PT: ID de ligação (Stream ID do VDO.Ninja). Quando preenchido, os links usam
+     * PT: `?push=ID` / `?view=ID` e a sala fica apenas como agrupamento opcional.
+     *
+     * EN: Connection ID (VDO.Ninja Stream ID). When filled in, the links use
+     * EN: `?push=ID` / `?view=ID` and the room remains only as an optional grouping.
      */
     val streamId: String = "",
     val room: String = "",
@@ -133,38 +163,62 @@ data class VdoNinjaSettings(
 )
 
 /**
- * Posição da janela PiP dentro do vídeo transmitido.
- * As coordenadas são aplicadas sobre a imagem final (retrato ou paisagem).
+ * PT: Posição da janela PiP dentro do vídeo transmitido.
+ * PT: As coordenadas são aplicadas sobre a imagem final (retrato ou paisagem).
+ *
+ * EN: Position of the PiP window inside the transmitted video.
+ * EN: The coordinates are applied over the final image (portrait or landscape).
  */
 @Serializable
-enum class PipPosition(val label: String) {
-    TOP_LEFT("Superior esquerdo"),
-    TOP_RIGHT("Superior direito"),
-    BOTTOM_LEFT("Inferior esquerdo"),
-    BOTTOM_RIGHT("Inferior direito"),
-    CENTER("Centro")
+enum class PipPosition(val label: String, val labelEn: String) {
+    TOP_LEFT("Superior esquerdo", "Top left"),
+    TOP_RIGHT("Superior direito", "Top right"),
+    BOTTOM_LEFT("Inferior esquerdo", "Bottom left"),
+    BOTTOM_RIGHT("Inferior direito", "Bottom right"),
+    CENTER("Centro", "Center")
 }
 
 /**
- * Composição de duas câmeras no mesmo vídeo (câmera principal + janela PiP).
+ * PT: Composição de duas câmeras no mesmo vídeo (câmera principal + janela PiP).
  *
- * Só funciona em aparelhos que suportam abrir duas câmeras ao mesmo tempo
- * (CameraManager.getConcurrentCameraIds). O RootEncoder desenha a segunda
- * câmera como um filtro de superfície sobre a imagem principal.
+ * PT: Só funciona em aparelhos que suportam abrir duas câmeras ao mesmo tempo
+ * PT: (CameraManager.getConcurrentCameraIds). O RootEncoder desenha a segunda
+ * PT: câmera como um filtro de superfície sobre a imagem principal.
+ *
+ * EN: Composition of two cameras in the same video (main camera + PiP window).
+ *
+ * EN: Only works on devices that support opening two cameras at the same time
+ * EN: (CameraManager.getConcurrentCameraIds). RootEncoder draws the second
+ * EN: camera as a surface filter over the main image.
  */
 @Serializable
 data class DualCameraSettings(
     val enabled: Boolean = false,
-    /** ID da câmera principal. Vazio = câmera padrão (traseira). */
+    /**
+     * PT: ID da câmera principal. Vazio = câmera padrão (traseira).
+     * EN: Main camera ID. Empty = default camera (rear).
+     */
     val mainCameraId: String = "",
-    /** ID da câmera da janela. Vazio = a primeira câmera diferente da principal. */
+    /**
+     * PT: ID da câmera da janela. Vazio = a primeira câmera diferente da principal.
+     * EN: Window camera ID. Empty = the first camera different from the main one.
+     */
     val pipCameraId: String = "",
     val position: PipPosition = PipPosition.TOP_RIGHT,
-    /** Largura da janela em % da largura do vídeo (10–50). */
+    /**
+     * PT: Largura da janela em % da largura do vídeo (10–50).
+     * EN: Window width as % of the video width (10–50).
+     */
     val sizePercent: Int = 30,
-    /** Margem em % da largura, usada para afastar a janela da borda. */
+    /**
+     * PT: Margem em % da largura, usada para afastar a janela da borda.
+     * EN: Margin as % of the width, used to move the window away from the edge.
+     */
     val marginPercent: Int = 2,
-    /** Rotação da imagem da janela (0, 90, 180 ou 270). */
+    /**
+     * PT: Rotação da imagem da janela (0, 90, 180 ou 270).
+     * EN: Window image rotation (0, 90, 180 or 270).
+     */
     val rotation: Int = 90
 )
 
@@ -177,7 +231,15 @@ data class AppSettings(
     val videoBitrateKbps: Int = 3500,
     val codec: CodecSetting = CodecSetting.H264,
     val orientation: VideoOrientation = VideoOrientation.PORTRAIT,
-    /** ID da câmera principal (Camera2) ou `usb:<deviceName>` para uma câmera USB UVC. */
+    /**
+     * PT: Idioma da interface: português (padrão) ou inglês.
+     * EN: UI language: Portuguese (default) or English.
+     */
+    val language: AppLanguage = AppLanguage.PT,
+    /**
+     * PT: ID da câmera principal (Camera2) ou `usb:<deviceName>` para uma câmera USB UVC.
+     * EN: Main camera ID (Camera2) or `usb:<deviceName>` for a UVC USB camera.
+     */
     val cameraId: String = "",
     val cameraLabel: String = "",
     val audioBitrateKbps: Int = 128,

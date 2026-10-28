@@ -11,12 +11,19 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Grava no armazenamento do app o stream local do estúdio P2P.
+ * PT: Grava no armazenamento do app o stream local do estúdio P2P.
  *
- * O WebView usa `MediaRecorder` sobre a faixa de câmera/microfone e envia os
- * blocos em base64. Os blocos são apenas concatenados no ficheiro: o
- * MediaRecorder já produz um contentor completo (MP4 no Chromium atual, WebM
- * como alternativa).
+ * PT: O WebView usa `MediaRecorder` sobre a faixa de câmera/microfone e envia os
+ * PT: blocos em base64. Os blocos são apenas concatenados no ficheiro: o
+ * PT: MediaRecorder já produz um contentor completo (MP4 no Chromium atual, WebM
+ * PT: como alternativa).
+ *
+ * EN: Records the local P2P studio stream into the app's storage.
+ *
+ * EN: The WebView uses `MediaRecorder` on the camera/microphone track and sends
+ * EN: the chunks in base64. The chunks are simply concatenated into the file:
+ * EN: MediaRecorder already produces a complete container (MP4 in current
+ * EN: Chromium, WebM as a fallback).
  */
 class StudioRecorder(private val context: Context) {
 
@@ -61,7 +68,8 @@ class StudioRecorder(private val context: Context) {
         }
     }
 
-    /** Fecha o ficheiro e devolve o caminho final, se existir. */
+    // PT: Fecha o ficheiro e devolve o caminho final, se existir.
+    // EN: Closes the file and returns the final path, if it exists.
     @Synchronized
     fun stop(): File? {
         val stream = output

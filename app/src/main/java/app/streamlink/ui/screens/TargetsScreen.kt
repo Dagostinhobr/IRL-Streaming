@@ -46,6 +46,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.streamlink.data.StreamTarget
+import app.streamlink.i18n.L10n
+import app.streamlink.i18n.tr
 import app.streamlink.ui.StreamViewModel
 import app.streamlink.ui.components.Pill
 import app.streamlink.ui.components.SettingsSection
@@ -75,10 +77,10 @@ fun TargetsScreen(
         containerColor = Ink,
         topBar = {
             TopAppBar(
-                title = { Text("Destinos", fontWeight = FontWeight.SemiBold) },
+                title = { Text(tr("Destinos", "Targets"), fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Voltar", "Back"))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -97,7 +99,7 @@ fun TargetsScreen(
                 containerColor = LiveRed,
                 contentColor = TextPrimary
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Adicionar destino")
+                Icon(Icons.Filled.Add, contentDescription = tr("Adicionar destino", "Add target"))
             }
         }
     ) { padding ->
@@ -110,7 +112,10 @@ fun TargetsScreen(
         ) {
             item {
                 Text(
-                    "Escolha para onde transmitir. Você pode manter várias URLs (Twitch, YouTube, Kick, servidor próprio) e trocar com um toque.",
+                    tr(
+                        "Escolha para onde transmitir. Você pode manter várias URLs (Twitch, YouTube, Kick, servidor próprio) e trocar com um toque.",
+                        "Choose where to stream. You can keep several URLs (Twitch, YouTube, Kick, your own server) and switch with a tap."
+                    ),
                     color = TextMuted,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(bottom = 4.dp)
@@ -131,7 +136,10 @@ fun TargetsScreen(
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            "Crie salas, gere links P2P ou publique via WHIP (WebRTC).",
+                            tr(
+                                "Crie salas, gere links P2P ou publique via WHIP (WebRTC).",
+                                "Create rooms, generate P2P links or publish via WHIP (WebRTC)."
+                            ),
                             color = TextMuted,
                             fontSize = 11.sp
                         )
@@ -139,7 +147,7 @@ fun TargetsScreen(
                             onClick = onOpenVdoNinja,
                             modifier = Modifier.padding(top = 2.dp)
                         ) {
-                            Text("Abrir integração", color = Mint, fontSize = 12.sp)
+                            Text(tr("Abrir integração", "Open integration"), color = Mint, fontSize = 12.sp)
                         }
                     }
                 }
@@ -170,12 +178,18 @@ fun TargetsScreen(
             }
 
             item {
-                SettingsSection("Formatos aceitos") {
+                SettingsSection(tr("Formatos aceitos", "Supported formats")) {
                     Text(
-                        "RTMP / RTMPS: informe a URL base e a stream key separadamente.\n" +
-                            "SRT / RTSP: cole a URL completa (ex.: srt://host:5000?streamid=...).\n" +
-                            "WHIP (WebRTC): cole a URL https://whip.vdo.ninja/token ou de outro servidor WHIP.\n" +
-                            "A importação moblin:// adiciona as URLs automaticamente.",
+                        tr(
+                            "RTMP / RTMPS: informe a URL base e a stream key separadamente.\n" +
+                                "SRT / RTSP: cole a URL completa (ex.: srt://host:5000?streamid=...).\n" +
+                                "WHIP (WebRTC): cole a URL https://whip.vdo.ninja/token ou de outro servidor WHIP.\n" +
+                                "A importação moblin:// adiciona as URLs automaticamente.",
+                            "RTMP / RTMPS: provide the base URL and the stream key separately.\n" +
+                                "SRT / RTSP: paste the full URL (e.g. srt://host:5000?streamid=...).\n" +
+                                "WHIP (WebRTC): paste the https://whip.vdo.ninja/token URL or another WHIP server URL.\n" +
+                                "moblin:// import adds the URLs automatically."
+                        ),
                         color = TextMuted,
                         fontSize = 11.sp
                     )
@@ -199,19 +213,19 @@ fun TargetsScreen(
     deleteCandidate?.let { target ->
         AlertDialog(
             onDismissRequest = { deleteCandidate = null },
-            title = { Text("Remover destino?") },
-            text = { Text("O destino \"${target.name}\" será removido. A transmissão atual não é afetada.") },
+            title = { Text(tr("Remover destino?", "Remove target?")) },
+            text = { Text(tr("O destino \"${target.name}\" será removido. A transmissão atual não é afetada.", "The target \"${target.name}\" will be removed. The current stream is not affected.")) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteTarget(target.id)
                     deleteCandidate = null
                 }) {
-                    Text("Remover", color = LiveRed)
+                    Text(tr("Remover", "Remove"), color = LiveRed)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { deleteCandidate = null }) {
-                    Text("Cancelar")
+                    Text(tr("Cancelar", "Cancel"))
                 }
             },
             containerColor = Panel
@@ -251,10 +265,10 @@ private fun TargetCard(
                     )
                 }
                 IconButton(onClick = onEdit) {
-                    Icon(Icons.Filled.Edit, contentDescription = "Editar", tint = TextMuted)
+                    Icon(Icons.Filled.Edit, contentDescription = tr("Editar", "Edit"), tint = TextMuted)
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Remover", tint = TextMuted)
+                    Icon(Icons.Filled.Delete, contentDescription = tr("Remover", "Remove"), tint = TextMuted)
                 }
             }
             Row(
@@ -263,9 +277,9 @@ private fun TargetCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Pill(text = target.badge, color = Mint)
-                if (selected) Pill(text = "SELECIONADO", color = LiveRed)
+                if (selected) Pill(text = tr("SELECIONADO", "SELECTED"), color = LiveRed)
                 if (target.endpoint().isBlank()) {
-                    Text("sem URL", color = TextMuted, fontSize = 10.sp)
+                    Text(tr("sem URL", "no URL"), color = TextMuted, fontSize = 10.sp)
                 }
             }
         }
@@ -281,9 +295,12 @@ private fun EmptyTargets(onAdd: () -> Unit) {
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Nenhum destino cadastrado", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+            Text(tr("Nenhum destino cadastrado", "No target configured"), color = TextPrimary, fontWeight = FontWeight.SemiBold)
             Text(
-                "Adicione a URL de ingest do seu provedor para começar.",
+                tr(
+                    "Adicione a URL de ingest do seu provedor para começar.",
+                    "Add your provider ingest URL to get started."
+                ),
                 color = TextMuted,
                 fontSize = 12.sp
             )
@@ -291,7 +308,7 @@ private fun EmptyTargets(onAdd: () -> Unit) {
             Button(onClick = onAdd) {
                 Icon(Icons.Filled.Add, contentDescription = null)
                 Spacer(Modifier.width(6.dp))
-                Text("Adicionar destino")
+                Text(tr("Adicionar destino", "Add target"))
             }
         }
     }
@@ -316,7 +333,7 @@ private fun TargetEditorDialog(
                     .padding(20.dp)
             ) {
                 Text(
-                    text = if (initial == null) "Novo destino" else "Editar destino",
+                    text = if (initial == null) tr("Novo destino", "New target") else tr("Editar destino", "Edit target"),
                     color = TextPrimary,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -326,7 +343,7 @@ private fun TargetEditorDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nome") },
+                    label = { Text(tr("Nome", "Name")) },
                     placeholder = { Text("Twitch") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
@@ -336,7 +353,7 @@ private fun TargetEditorDialog(
                 OutlinedTextField(
                     value = url,
                     onValueChange = { url = it },
-                    label = { Text("URL de ingest") },
+                    label = { Text(tr("URL de ingest", "Ingest URL")) },
                     placeholder = { Text("rtmp://live.twitch.tv/app") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
@@ -346,7 +363,7 @@ private fun TargetEditorDialog(
                 OutlinedTextField(
                     value = streamKey,
                     onValueChange = { streamKey = it },
-                    label = { Text("Stream key (RTMP/RTMPS)") },
+                    label = { Text(tr("Stream key (RTMP/RTMPS)", "Stream key (RTMP/RTMPS)")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -355,13 +372,16 @@ private fun TargetEditorDialog(
                 OutlinedTextField(
                     value = backupUrl,
                     onValueChange = { backupUrl = it },
-                    label = { Text("URL de backup (opcional)") },
+                    label = { Text(tr("URL de backup (opcional)", "Backup URL (optional)")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Text(
-                    "Para SRT, cole a URL completa no campo acima e deixe a stream key vazia.",
+                    tr(
+                        "Para SRT, cole a URL completa no campo acima e deixe a stream key vazia.",
+                        "For SRT, paste the full URL in the field above and leave the stream key empty."
+                    ),
                     color = TextMuted,
                     fontSize = 10.sp,
                     modifier = Modifier.padding(top = 8.dp)
@@ -375,13 +395,13 @@ private fun TargetEditorDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancelar")
+                        Text(tr("Cancelar", "Cancel"))
                     }
                     Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = {
                             val target = (initial ?: StreamTarget()).copy(
-                                name = name.trim().ifBlank { "Destino" },
+                                name = name.trim().ifBlank { L10n.t("Destino", "Target") },
                                 url = url.trim(),
                                 streamKey = streamKey.trim(),
                                 backupUrl = backupUrl.trim()
@@ -390,7 +410,7 @@ private fun TargetEditorDialog(
                         },
                         enabled = url.isNotBlank()
                     ) {
-                        Text("Salvar")
+                        Text(tr("Salvar", "Save"))
                     }
                 }
             }
