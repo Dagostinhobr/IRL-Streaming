@@ -1,0 +1,350 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0243FF6D60F0CA09B062BE45 /* StudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97B97C87C0E7E64672D3B3E0 /* StudioView.swift */; };
+		13F7914EFE3F9F3B8FBAAA6A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A8CD0B557876A51AFB5DBA24 /* Assets.xcassets */; };
+		19197BBC4875F2F0E56D4409 /* TwitchChatClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5326679A9CDB0710145D091 /* TwitchChatClient.swift */; };
+		2A3192C2D0CE6ED758B12699 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC6562C895023BCFB2A9A7C2 /* Models.swift */; };
+		4A898E9F6C6F402D6D338F58 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C993CBF4746A0A48992E62D /* SettingsView.swift */; };
+		5C6266D2E145AA409AF6B4A8 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED6BF6744FF7A81C14CF6693 /* ChatView.swift */; };
+		670242AA835A91A3A89C8F35 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A78AB1FE5CD28FCF63035CD /* RootView.swift */; };
+		896B68811E7B35300306E70E /* IRLStreamingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B32E34D4617BDD4EA8EACB6A /* IRLStreamingApp.swift */; };
+		99047FE69AA49B3AC59260D1 /* VdoNinjaLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA95251D6218FF12EA7DCD /* VdoNinjaLinks.swift */; };
+		ACB691F1BCFCEC1BBDF8A8ED /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C8D6A5669F9963F63179B87 /* SettingsStore.swift */; };
+		CCC7ED142A28AB691B503881 /* UI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A7CC6899EE8B93D2DD3DCB2 /* UI.swift */; };
+		EFB93A57E749775113328D8B /* VdoLinksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 926942BAA5CBAF1DAC4387FD /* VdoLinksView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0A78AB1FE5CD28FCF63035CD /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		3C8D6A5669F9963F63179B87 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		5A7CC6899EE8B93D2DD3DCB2 /* UI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI.swift; sourceTree = "<group>"; };
+		8BAA95251D6218FF12EA7DCD /* VdoNinjaLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdoNinjaLinks.swift; sourceTree = "<group>"; };
+		8C993CBF4746A0A48992E62D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		926942BAA5CBAF1DAC4387FD /* VdoLinksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdoLinksView.swift; sourceTree = "<group>"; };
+		97B97C87C0E7E64672D3B3E0 /* StudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudioView.swift; sourceTree = "<group>"; };
+		A8CD0B557876A51AFB5DBA24 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B32E34D4617BDD4EA8EACB6A /* IRLStreamingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IRLStreamingApp.swift; sourceTree = "<group>"; };
+		BC6562C895023BCFB2A9A7C2 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		C5326679A9CDB0710145D091 /* TwitchChatClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwitchChatClient.swift; sourceTree = "<group>"; };
+		ED6BF6744FF7A81C14CF6693 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		FB0E9241DF83BA63080A790E /* IRLStreaming.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = IRLStreaming.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		2AA3595C4C60418D8BFE6738 = {
+			isa = PBXGroup;
+			children = (
+				E6040556AB7A356D81944807 /* IRLStreaming */,
+				B2925DE8BE9AE3FC3DF6745D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B2925DE8BE9AE3FC3DF6745D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FB0E9241DF83BA63080A790E /* IRLStreaming.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E6040556AB7A356D81944807 /* IRLStreaming */ = {
+			isa = PBXGroup;
+			children = (
+				A8CD0B557876A51AFB5DBA24 /* Assets.xcassets */,
+				ED6BF6744FF7A81C14CF6693 /* ChatView.swift */,
+				B32E34D4617BDD4EA8EACB6A /* IRLStreamingApp.swift */,
+				BC6562C895023BCFB2A9A7C2 /* Models.swift */,
+				0A78AB1FE5CD28FCF63035CD /* RootView.swift */,
+				3C8D6A5669F9963F63179B87 /* SettingsStore.swift */,
+				8C993CBF4746A0A48992E62D /* SettingsView.swift */,
+				97B97C87C0E7E64672D3B3E0 /* StudioView.swift */,
+				C5326679A9CDB0710145D091 /* TwitchChatClient.swift */,
+				5A7CC6899EE8B93D2DD3DCB2 /* UI.swift */,
+				926942BAA5CBAF1DAC4387FD /* VdoLinksView.swift */,
+				8BAA95251D6218FF12EA7DCD /* VdoNinjaLinks.swift */,
+			);
+			path = IRLStreaming;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		250779EFF15CD3EA91E3DE9A /* IRLStreaming */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2FE75A4E70F84EDB5EE34B91 /* Build configuration list for PBXNativeTarget "IRLStreaming" */;
+			buildPhases = (
+				8F2179237210A900D1A01940 /* Sources */,
+				D541A21F2A4B649D1B938BBE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IRLStreaming;
+			packageProductDependencies = (
+			);
+			productName = IRLStreaming;
+			productReference = FB0E9241DF83BA63080A790E /* IRLStreaming.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		ACE6F1D9AE13FBCA06562E56 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					250779EFF15CD3EA91E3DE9A = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = DAE83B1F4B4416DF3FFA61E8 /* Build configuration list for PBXProject "IRLStreaming" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 2AA3595C4C60418D8BFE6738;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = B2925DE8BE9AE3FC3DF6745D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				250779EFF15CD3EA91E3DE9A /* IRLStreaming */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D541A21F2A4B649D1B938BBE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				13F7914EFE3F9F3B8FBAAA6A /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8F2179237210A900D1A01940 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5C6266D2E145AA409AF6B4A8 /* ChatView.swift in Sources */,
+				896B68811E7B35300306E70E /* IRLStreamingApp.swift in Sources */,
+				2A3192C2D0CE6ED758B12699 /* Models.swift in Sources */,
+				670242AA835A91A3A89C8F35 /* RootView.swift in Sources */,
+				ACB691F1BCFCEC1BBDF8A8ED /* SettingsStore.swift in Sources */,
+				4A898E9F6C6F402D6D338F58 /* SettingsView.swift in Sources */,
+				0243FF6D60F0CA09B062BE45 /* StudioView.swift in Sources */,
+				19197BBC4875F2F0E56D4409 /* TwitchChatClient.swift in Sources */,
+				CCC7ED142A28AB691B503881 /* UI.swift in Sources */,
+				EFB93A57E749775113328D8B /* VdoLinksView.swift in Sources */,
+				99047FE69AA49B3AC59260D1 /* VdoNinjaLinks.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		74CD35E0366C0FA72F6D0E6D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 0.8.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7696A40460622CCF950B6B9C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 0.8.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		979C7B709D919182FCB40A21 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = IRLStreaming/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.streamlink.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BB931F9B97771B359DB5E8F4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = IRLStreaming/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.streamlink.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2FE75A4E70F84EDB5EE34B91 /* Build configuration list for PBXNativeTarget "IRLStreaming" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB931F9B97771B359DB5E8F4 /* Debug */,
+				979C7B709D919182FCB40A21 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DAE83B1F4B4416DF3FFA61E8 /* Build configuration list for PBXProject "IRLStreaming" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				74CD35E0366C0FA72F6D0E6D /* Debug */,
+				7696A40460622CCF950B6B9C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = ACE6F1D9AE13FBCA06562E56 /* Project object */;
+}

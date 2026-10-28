@@ -1,25 +1,29 @@
-# IRL Streaming — live streaming for Android
+# IRL Streaming — live streaming for Android and iOS
 
-An **independent** Android app for live streaming from your phone, inspired by
-[Moblin](https://moblin.app/) (iOS). The goal is to deliver the core IRL
-streaming workflow on Android: camera + microphone → encoder → RTMP/RTMPS/SRT/WHIP,
-with chat, local recording, multiple targets, VDO.Ninja (P2P) and `moblin://` link
-import.
+An **independent** live streaming project, inspired by
+[Moblin](https://moblin.app/) (iOS). The Android app delivers the core IRL
+streaming workflow: camera + microphone → encoder → RTMP/RTMPS/SRT/WHIP, with
+chat, local recording, multiple targets, VDO.Ninja (P2P) and `moblin://` link
+import. The iOS app is a new **MVP focused on the VDO.Ninja P2P studio**.
 
-> **Status:** beta (v0.8.0). Moblin has years of development and dozens of
-> advanced features (scenes, widgets, SRTLA, remote OBS, Apple Watch). See the
-> [Differences from Moblin](#differences-from-moblin) section before expecting
-> 1:1 parity.
+> **Status:** Android beta (v0.8.0) and iOS MVP (v0.8.0). Moblin has years of
+> development and dozens of advanced features (scenes, widgets, SRTLA, remote
+> OBS, Apple Watch). See the [Differences from Moblin](#differences-from-moblin)
+> section before expecting 1:1 parity.
 
-**Download:** [GitHub Releases](https://github.com/Dagostinhobr/IRL-Streaming/releases) —
+**Download (Android):** [GitHub Releases](https://github.com/Dagostinhobr/IRL-Streaming/releases) —
 `IRL-Streaming-0.8.0.apk` (signed release) or `IRL-Streaming-0.8.0-debug.apk` (test build).
 
-> **Name:** the app appears as **IRL Streaming** in the launcher. The internal
-> package identifier remains `app.streamlink` to preserve existing installs and
-> upgrades.
+The iOS app is not distributed yet; it is built from source in Xcode. See
+[iOS app (MVP)](#ios-app-mvp).
 
-> **Language:** the interface is available in **Portuguese** and **English**.
-> Change it at any time in **Settings → Language**.
+> **Name:** the app appears as **IRL Streaming** in the launcher. The internal
+> Android package identifier remains `app.streamlink` to preserve existing
+> installs and upgrades. The iOS bundle identifier is `app.streamlink.ios`.
+
+> **Language:** the interface is available in **Portuguese** and **English** on
+> both platforms. Change it at any time in **Settings → Language**.
+
 
 ---
 
@@ -169,6 +173,62 @@ VDO.Ninja (`?push=ROOM`) and place that source as a PiP in OBS.
 
 ---
 
+## iOS app (MVP)
+
+The iOS app lives in [`ios/`](ios/) and is a native SwiftUI project generated
+with [XcodeGen](https://github.com/yonaskolb/XcodeGen). It targets **iOS 16+**,
+uses the bundle identifier `app.streamlink.ios`, and focuses on the VDO.Ninja
+P2P workflow:
+
+| Area | iOS MVP |
+|---|---|
+| Studio | Embedded `WKWebView` publishing to VDO.Ninja with the iPhone camera and microphone |
+| Links | Stream ID or room, password, display name, publish and view links, copy/share, paste-to-fill |
+| Quality | Video/audio bitrate, stereo, autostart, clean output, audio-only, force H.264 |
+| Chat | Twitch IRC over WebSocket: anonymous reading, OAuth sending, overlay over the studio |
+| Settings | Portuguese/English, keep screen on, privacy notes, reset |
+| Persistence | `UserDefaults` (settings, links and tokens stay on the device) |
+
+**Not included in the iOS MVP:** native RTMP/SRT/WHIP encoding, local recording,
+UVC cameras, multi-camera PiP and background streaming. iOS also suspends
+WebRTC when the app goes to the background, so keep it in the foreground while
+publishing.
+
+### Build and install on an iPhone
+
+Requirements: macOS with **Xcode 15 or newer**, an Apple ID, and an iPhone
+running iOS 16+.
+
+1. Install Xcode from the App Store and run it once to install the platform.
+2. Generate the project (only needed after changing `ios/project.yml` or adding
+   files):
+
+   ```bash
+   cd ios
+   xcodegen generate
+   ```
+
+   XcodeGen can be installed with `brew install xcodegen`.
+3. Open `ios/IRLStreaming.xcodeproj` in Xcode.
+4. Select the **IRLStreaming** target → **Signing & Capabilities** → choose your
+   personal team. Change the bundle identifier if Xcode asks for a unique one.
+5. Connect the iPhone, enable **Developer Mode** on the device, select it as the
+   run destination and press **Run**.
+6. On first launch, allow camera and microphone access.
+
+A free Apple ID signs the app for **7 days** and needs a reinstall afterwards. A
+paid Apple Developer account (99 USD/year) enables TestFlight and longer-lived
+installs. There is no `.ipa` in the repository because builds must be signed
+with your own Apple account.
+
+The generated `ios/IRLStreaming.xcodeproj` is committed, so step 2 is only
+needed after changing `project.yml` or adding/removing source files.
+
+See [`ios/README.md`](ios/README.md) for the project structure and
+troubleshooting.
+
+---
+
 ## Building
 
 ### Requirements
@@ -176,6 +236,7 @@ VDO.Ninja (`?push=ROOM`) and place that source as a PiP in OBS.
 - Android Studio (Ladybug or newer) **or** JDK 17 + Android SDK 35
 - Android 8.0 (API 26) or newer
 - A physical phone to test camera/encoder (emulators do not have a good camera)
+- For iOS: macOS, Xcode 15+ and iOS 16+ (see [iOS app (MVP)](#ios-app-mvp))
 
 ### In Android Studio
 

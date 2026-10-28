@@ -20,3 +20,11 @@ local.properties
 .tmp/
 /.kotlin/
 *.log
+
+# PT: Artefatos de build do Xcode / EN: Xcode build artifacts
+ios/build/
+ios/DerivedData/
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcuserstate

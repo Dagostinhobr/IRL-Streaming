@@ -1,0 +1,58 @@
+name: IRLStreaming
+options:
+  bundleIdPrefix: app.streamlink
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+settings:
+  base:
+    MARKETING_VERSION: 0.8.0
+    CURRENT_PROJECT_VERSION: 1
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+targets:
+  IRLStreaming:
+    type: application
+    platform: iOS
+    sources:
+      - path: IRLStreaming
+        excludes:
+          - "Info.plist"
+    info:
+      path: IRLStreaming/Info.plist
+      properties:
+        CFBundleDisplayName: IRL Streaming
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        UILaunchScreen: {}
+        NSCameraUsageDescription: "IRL Streaming uses the camera to publish your live stream."
+        NSMicrophoneUsageDescription: "IRL Streaming uses the microphone to publish audio in your live stream."
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIRequiresFullScreen: false
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.streamlink.ios
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        GENERATE_INFOPLIST_FILE: false
+        CODE_SIGN_STYLE: Automatic
+schemes:
+  IRLStreaming:
+    build:
+      targets:
+        IRLStreaming: all
+    run:
+      config: Debug
+    archive:
+      config: Release
