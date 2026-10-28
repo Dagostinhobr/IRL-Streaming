@@ -4,10 +4,15 @@ Native SwiftUI app focused on the **VDO.Ninja P2P studio**. It publishes the
 iPhone camera and microphone through an embedded `WKWebView`, generates the
 publish/view links, and includes a basic Twitch chat.
 
-- **Bundle identifier:** `app.streamlink.ios`
+- **Bundle identifier:** `app.streamlink.ios` (change it if your team cannot
+  register it; see the troubleshooting note below)
 - **Deployment target:** iOS 16.0
 - **Version:** 0.8.0 (build 1)
 - **Project generator:** [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+
+> **Status:** built with Xcode 27.1 and tested on a physical iPhone 13. Live
+> VDO.Ninja P2P publishing was verified from another device (video and audio
+> tracks live).
 
 ## Structure
 
@@ -64,6 +69,31 @@ longer installs.
 
 To archive: **Product → Archive**, then distribute through Xcode Organizer or
 TestFlight. An unsigned `.ipa` is not part of the repository.
+
+### Install from the command line
+
+Useful once the Apple team is configured in Xcode. Replace the team ID, the
+bundle identifier and the device UDID with your own values:
+
+```bash
+cd ios
+xcodebuild -project IRLStreaming.xcodeproj -scheme IRLStreaming \
+  -configuration Debug -sdk iphoneos \
+  -destination 'id=YOUR_DEVICE_UDID' \
+  -allowProvisioningUpdates \
+  DEVELOPMENT_TEAM=YOUR_TEAM_ID \
+  PRODUCT_BUNDLE_IDENTIFIER=app.streamlink.ios.yourname \
+  CODE_SIGN_STYLE=Automatic build
+
+xcrun devicectl device install app --device YOUR_DEVICE_UDID \
+  ~/Library/Developer/Xcode/DerivedData/IRLStreaming-*/Build/Products/Debug-iphoneos/IRLStreaming.app
+```
+
+If Xcode reports that `app.streamlink.ios` is not available for your team, add
+a unique suffix in **Signing & Capabilities** or through
+`PRODUCT_BUNDLE_IDENTIFIER` as shown above. Free teams still need to trust the
+developer certificate on the device (**Settings → General → VPN & Device
+Management → Developer App**).
 
 ## VDO.Ninja links
 
