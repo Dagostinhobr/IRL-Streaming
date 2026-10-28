@@ -4,9 +4,10 @@ An **independent** live streaming project, inspired by
 [Moblin](https://moblin.app/) (iOS). The Android app delivers the core IRL
 streaming workflow: camera + microphone → encoder → RTMP/RTMPS/SRT/WHIP, with
 chat, local recording, multiple targets, VDO.Ninja (P2P) and `moblin://` link
-import. The iOS app is a new **MVP focused on the VDO.Ninja P2P studio**.
+import. The iOS app ships **native RTMP/RTMPS** plus the **VDO.Ninja P2P**
+studio.
 
-> **Status:** Android beta (v0.8.0) and iOS MVP (v0.8.0). Moblin has years of
+> **Status:** Android beta (v0.8.0) and iOS (v0.9.0). Moblin has years of
 > development and dozens of advanced features (scenes, widgets, SRTLA, remote
 > OBS, Apple Watch). See the [Differences from Moblin](#differences-from-moblin)
 > section before expecting 1:1 parity.
@@ -15,7 +16,7 @@ import. The iOS app is a new **MVP focused on the VDO.Ninja P2P studio**.
 `IRL-Streaming-0.8.0.apk` (signed release) or `IRL-Streaming-0.8.0-debug.apk` (test build).
 
 The iOS app is not distributed yet; it is built from source in Xcode. See
-[iOS app (MVP)](#ios-app-mvp).
+[iOS app](#ios-app).
 
 > **Name:** the app appears as **IRL Streaming** in the launcher. The internal
 > Android package identifier remains `app.streamlink` to preserve existing
@@ -173,26 +174,32 @@ VDO.Ninja (`?push=ROOM`) and place that source as a PiP in OBS.
 
 ---
 
-## iOS app (MVP)
+## iOS app
 
 The iOS app lives in [`ios/`](ios/) and is a native SwiftUI project generated
 with [XcodeGen](https://github.com/yonaskolb/XcodeGen). It targets **iOS 16+**,
-uses the bundle identifier `app.streamlink.ios`, and focuses on the VDO.Ninja
-P2P workflow:
+uses the bundle identifier `app.streamlink.ios`, and offers two publishing
+paths: native RTMP/RTMPS and the VDO.Ninja P2P studio.
 
-| Area | iOS MVP |
+| Area | iOS app |
 |---|---|
-| Studio | Embedded `WKWebView` publishing to VDO.Ninja with the iPhone camera and microphone |
+| Live (RTMP) | Native camera capture, H.264/HEVC + AAC encoding and RTMP/RTMPS publishing |
+| Targets | Named ingest URL + stream key, selection, editing and validation |
+| Quality | 480p/720p/1080p, 24/30/60 fps, bitrate, mono/stereo, portrait/landscape, auto-reconnect |
+| Controls | Mute, front/rear camera, torch, zoom, local MP4 recording, live bitrate/FPS/uptime |
+| Reconnection | 5 attempts with exponential backoff, fresh stream per attempt |
+| Studio (P2P) | Embedded `WKWebView` publishing to VDO.Ninja with the iPhone camera and microphone |
 | Links | Stream ID or room, password, display name, publish and view links, copy/share, paste-to-fill |
-| Quality | Video/audio bitrate, stereo, autostart, clean output, audio-only, force H.264 |
 | Chat | Twitch IRC over WebSocket: anonymous reading, OAuth sending, overlay over the studio |
 | Settings | Portuguese/English, keep screen on, privacy notes, reset |
-| Persistence | `UserDefaults` (settings, links and tokens stay on the device) |
+| Persistence | `UserDefaults` (settings, links, targets and tokens stay on the device) |
 
-**Not included in the iOS MVP:** native RTMP/SRT/WHIP encoding, local recording,
-UVC cameras, multi-camera PiP and background streaming. iOS also suspends
-WebRTC when the app goes to the background, so keep it in the foreground while
-publishing.
+The app uses five tabs: **Live**, **P2P**, **Links**, **Chat** and **Settings**.
+
+**iOS limitations:** no SRT/WHIP/RTSP, no UVC camera, no two-camera PiP and no
+background streaming. iOS suspends capture and networking when the app leaves
+the foreground, so keep it open while publishing. A free Apple ID signature
+expires after 7 days.
 
 ### Build and install on an iPhone
 
@@ -236,7 +243,7 @@ troubleshooting.
 - Android Studio (Ladybug or newer) **or** JDK 17 + Android SDK 35
 - Android 8.0 (API 26) or newer
 - A physical phone to test camera/encoder (emulators do not have a good camera)
-- For iOS: macOS, Xcode 15+ and iOS 16+ (see [iOS app (MVP)](#ios-app-mvp))
+- For iOS: macOS, Xcode 15+ and iOS 16+ (see [iOS app](#ios-app))
 
 ### In Android Studio
 
@@ -308,7 +315,8 @@ Open **Targets** (cast icon) → choose or create a target:
 | WHIP | `https://whip.vdo.ninja/TOKEN` | leave empty |
 
 > For RTMP the final URL is `url/streamKey`. For SRT/RTSP/WHIP with an embedded key,
-> paste the full URL and leave the stream key empty.
+> paste the full URL and leave the stream key empty. The iOS app accepts the same
+> RTMP/RTMPS URLs; SRT/WHIP/RTSP are Android-only.
 
 ### 2. Twitch chat
 
@@ -372,6 +380,23 @@ app/src/main/java/app/streamlink/
 Stack: **Kotlin + Jetpack Compose + Material 3 + Camera2/RootEncoder + OkHttp + WebView**.
 No telemetry, no own server: video goes straight to the ingest server you configure
 (or directly to the guest, in the case of P2P).
+
+The iOS app follows the same separation in SwiftUI:
+
+```
+ios/IRLStreaming/
+├── IRLStreamingApp.swift      # entry point, audio session, engine injection
+├── RootView.swift             # tabs: Live, P2P, Links, Chat, Settings
+├── RtmpEngine.swift           # capture + encoder + RTMP/RTMPS + recording + reconnect
+├── RtmpView.swift             # live studio, preview, controls, quality sheet
+├── RtmpTargetsView.swift      # RTMP target management
+├── StudioView.swift           # VDO.Ninja P2P studio (WKWebView)
+├── VdoLinksView.swift         # VDO.Ninja links and quality
+├── TwitchChatClient / ChatView
+├── Models / SettingsStore / VdoNinjaLinks / UI
+```
+
+Stack: **Swift + SwiftUI + AVFoundation + HaishinKit 2.2.5 (RTMP) + WKWebView**.
 
 ### Permissions
 

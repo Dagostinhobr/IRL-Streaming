@@ -12,11 +12,16 @@
 		19197BBC4875F2F0E56D4409 /* TwitchChatClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5326679A9CDB0710145D091 /* TwitchChatClient.swift */; };
 		2A3192C2D0CE6ED758B12699 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC6562C895023BCFB2A9A7C2 /* Models.swift */; };
 		4A898E9F6C6F402D6D338F58 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C993CBF4746A0A48992E62D /* SettingsView.swift */; };
+		52BAD1FA5F95F6A425810FDE /* RtmpEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 427F4B00F8A59BA81B2FE165 /* RtmpEngine.swift */; };
 		5C6266D2E145AA409AF6B4A8 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED6BF6744FF7A81C14CF6693 /* ChatView.swift */; };
 		670242AA835A91A3A89C8F35 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A78AB1FE5CD28FCF63035CD /* RootView.swift */; };
+		7E083BFCA3F1CD66809C3123 /* RTMPHaishinKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3C68B1751D69C7377FB1DA39 /* RTMPHaishinKit */; };
 		896B68811E7B35300306E70E /* IRLStreamingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B32E34D4617BDD4EA8EACB6A /* IRLStreamingApp.swift */; };
+		8997BE497FA42167626A4382 /* HaishinKit in Frameworks */ = {isa = PBXBuildFile; productRef = CBD4B91AC49F908E07DEC344 /* HaishinKit */; };
 		99047FE69AA49B3AC59260D1 /* VdoNinjaLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA95251D6218FF12EA7DCD /* VdoNinjaLinks.swift */; };
+		A690B68140C2ADC8D694F125 /* RtmpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62A17AC7A461D8BFBD9CE293 /* RtmpView.swift */; };
 		ACB691F1BCFCEC1BBDF8A8ED /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C8D6A5669F9963F63179B87 /* SettingsStore.swift */; };
+		C3265DB8B480D76B7ED2C902 /* RtmpTargetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50912AE5F821B46A635D8EC /* RtmpTargetsView.swift */; };
 		CCC7ED142A28AB691B503881 /* UI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A7CC6899EE8B93D2DD3DCB2 /* UI.swift */; };
 		EFB93A57E749775113328D8B /* VdoLinksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 926942BAA5CBAF1DAC4387FD /* VdoLinksView.swift */; };
 /* End PBXBuildFile section */
@@ -24,7 +29,9 @@
 /* Begin PBXFileReference section */
 		0A78AB1FE5CD28FCF63035CD /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		3C8D6A5669F9963F63179B87 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		427F4B00F8A59BA81B2FE165 /* RtmpEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RtmpEngine.swift; sourceTree = "<group>"; };
 		5A7CC6899EE8B93D2DD3DCB2 /* UI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI.swift; sourceTree = "<group>"; };
+		62A17AC7A461D8BFBD9CE293 /* RtmpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RtmpView.swift; sourceTree = "<group>"; };
 		8BAA95251D6218FF12EA7DCD /* VdoNinjaLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdoNinjaLinks.swift; sourceTree = "<group>"; };
 		8C993CBF4746A0A48992E62D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		926942BAA5CBAF1DAC4387FD /* VdoLinksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdoLinksView.swift; sourceTree = "<group>"; };
@@ -33,9 +40,22 @@
 		B32E34D4617BDD4EA8EACB6A /* IRLStreamingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IRLStreamingApp.swift; sourceTree = "<group>"; };
 		BC6562C895023BCFB2A9A7C2 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		C5326679A9CDB0710145D091 /* TwitchChatClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwitchChatClient.swift; sourceTree = "<group>"; };
+		D50912AE5F821B46A635D8EC /* RtmpTargetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RtmpTargetsView.swift; sourceTree = "<group>"; };
 		ED6BF6744FF7A81C14CF6693 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		FB0E9241DF83BA63080A790E /* IRLStreaming.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = IRLStreaming.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		92F9DAAFB7837B08321AF996 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8997BE497FA42167626A4382 /* HaishinKit in Frameworks */,
+				7E083BFCA3F1CD66809C3123 /* RTMPHaishinKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		2AA3595C4C60418D8BFE6738 = {
@@ -62,6 +82,9 @@
 				B32E34D4617BDD4EA8EACB6A /* IRLStreamingApp.swift */,
 				BC6562C895023BCFB2A9A7C2 /* Models.swift */,
 				0A78AB1FE5CD28FCF63035CD /* RootView.swift */,
+				427F4B00F8A59BA81B2FE165 /* RtmpEngine.swift */,
+				D50912AE5F821B46A635D8EC /* RtmpTargetsView.swift */,
+				62A17AC7A461D8BFBD9CE293 /* RtmpView.swift */,
 				3C8D6A5669F9963F63179B87 /* SettingsStore.swift */,
 				8C993CBF4746A0A48992E62D /* SettingsView.swift */,
 				97B97C87C0E7E64672D3B3E0 /* StudioView.swift */,
@@ -82,6 +105,7 @@
 			buildPhases = (
 				8F2179237210A900D1A01940 /* Sources */,
 				D541A21F2A4B649D1B938BBE /* Resources */,
+				92F9DAAFB7837B08321AF996 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -89,6 +113,8 @@
 			);
 			name = IRLStreaming;
 			packageProductDependencies = (
+				CBD4B91AC49F908E07DEC344 /* HaishinKit */,
+				3C68B1751D69C7377FB1DA39 /* RTMPHaishinKit */,
 			);
 			productName = IRLStreaming;
 			productReference = FB0E9241DF83BA63080A790E /* IRLStreaming.app */;
@@ -117,6 +143,9 @@
 			);
 			mainGroup = 2AA3595C4C60418D8BFE6738;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				2C10B66B6AE01FD1484F4156 /* XCRemoteSwiftPackageReference "HaishinKit.swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B2925DE8BE9AE3FC3DF6745D /* Products */;
 			projectDirPath = "";
@@ -147,6 +176,9 @@
 				896B68811E7B35300306E70E /* IRLStreamingApp.swift in Sources */,
 				2A3192C2D0CE6ED758B12699 /* Models.swift in Sources */,
 				670242AA835A91A3A89C8F35 /* RootView.swift in Sources */,
+				52BAD1FA5F95F6A425810FDE /* RtmpEngine.swift in Sources */,
+				C3265DB8B480D76B7ED2C902 /* RtmpTargetsView.swift in Sources */,
+				A690B68140C2ADC8D694F125 /* RtmpView.swift in Sources */,
 				ACB691F1BCFCEC1BBDF8A8ED /* SettingsStore.swift in Sources */,
 				4A898E9F6C6F402D6D338F58 /* SettingsView.swift in Sources */,
 				0243FF6D60F0CA09B062BE45 /* StudioView.swift in Sources */,
@@ -213,7 +245,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 0.8.0;
+				MARKETING_VERSION = 0.9.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -273,7 +305,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 0.8.0;
+				MARKETING_VERSION = 0.9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -345,6 +377,30 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		2C10B66B6AE01FD1484F4156 /* XCRemoteSwiftPackageReference "HaishinKit.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/shogo4405/HaishinKit.swift";
+			requirement = {
+				kind = exactVersion;
+				version = 2.2.5;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3C68B1751D69C7377FB1DA39 /* RTMPHaishinKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2C10B66B6AE01FD1484F4156 /* XCRemoteSwiftPackageReference "HaishinKit.swift" */;
+			productName = RTMPHaishinKit;
+		};
+		CBD4B91AC49F908E07DEC344 /* HaishinKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2C10B66B6AE01FD1484F4156 /* XCRemoteSwiftPackageReference "HaishinKit.swift" */;
+			productName = HaishinKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = ACE6F1D9AE13FBCA06562E56 /* Project object */;
 }

@@ -7,11 +7,15 @@ options:
   developmentLanguage: en
 settings:
   base:
-    MARKETING_VERSION: 0.8.0
+    MARKETING_VERSION: 0.9.0
     CURRENT_PROJECT_VERSION: 1
     SWIFT_VERSION: "5.9"
     IPHONEOS_DEPLOYMENT_TARGET: "16.0"
     TARGETED_DEVICE_FAMILY: "1,2"
+packages:
+  HaishinKit:
+    url: https://github.com/shogo4405/HaishinKit.swift
+    exactVersion: 2.2.5
 targets:
   IRLStreaming:
     type: application
@@ -20,6 +24,11 @@ targets:
       - path: IRLStreaming
         excludes:
           - "Info.plist"
+    dependencies:
+      - package: HaishinKit
+        product: HaishinKit
+      - package: HaishinKit
+        product: RTMPHaishinKit
     info:
       path: IRLStreaming/Info.plist
       properties:
@@ -29,6 +38,7 @@ targets:
         UILaunchScreen: {}
         NSCameraUsageDescription: "IRL Streaming uses the camera to publish your live stream."
         NSMicrophoneUsageDescription: "IRL Streaming uses the microphone to publish audio in your live stream."
+        NSLocalNetworkUsageDescription: "IRL Streaming can publish RTMP to a server on your local network."
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft

@@ -38,6 +38,10 @@ final class SettingsStore: ObservableObject {
         update { $0.chat.apply(transform) }
     }
 
+    func updateNative(_ transform: (inout NativeSettings) -> Void) {
+        update { $0.native.apply(transform) }
+    }
+
     /// PT: Repõe todas as preferências. / EN: Resets all preferences.
     func reset() {
         settings = AppSettings()
@@ -58,6 +62,12 @@ private extension VdoSettings {
 
 private extension ChatSettings {
     mutating func apply(_ transform: (inout ChatSettings) -> Void) {
+        transform(&self)
+    }
+}
+
+private extension NativeSettings {
+    mutating func apply(_ transform: (inout NativeSettings) -> Void) {
         transform(&self)
     }
 }

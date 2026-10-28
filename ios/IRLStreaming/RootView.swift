@@ -1,20 +1,24 @@
 import SwiftUI
 import UIKit
 
-/// PT: Navegação principal: estúdio, links, chat e ajustes.
-/// EN: Main navigation: studio, links, chat and settings.
+/// PT: Navegação principal: ao vivo (RTMP), P2P, links, chat e ajustes.
+/// EN: Main navigation: live (RTMP), P2P, links, chat and settings.
 struct RootView: View {
     @EnvironmentObject private var store: SettingsStore
-    @State private var selection: Tab = .studio
+    @State private var selection: Tab = .live
 
     enum Tab {
-        case studio, links, chat, settings
+        case live, studio, links, chat, settings
     }
 
     var body: some View {
         TabView(selection: $selection) {
+            RtmpView()
+                .tabItem { Label(store.t("Ao vivo", "Live"), systemImage: "dot.radiowaves.left.and.right") }
+                .tag(Tab.live)
+
             StudioView()
-                .tabItem { Label(store.t("Estúdio", "Studio"), systemImage: "video.fill") }
+                .tabItem { Label("P2P", systemImage: "video.fill") }
                 .tag(Tab.studio)
 
             VdoLinksView()

@@ -24,6 +24,8 @@
 	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>IRL Streaming uses the camera to publish your live stream.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>IRL Streaming can publish RTMP to a server on your local network.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>IRL Streaming uses the microphone to publish audio in your live stream.</string>
 	<key>UILaunchScreen</key>
