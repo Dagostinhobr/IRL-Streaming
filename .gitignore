@@ -1,0 +1,21 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+build/
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+*.apk
+*.aab
+
+# Assinatura e artefatos de distribuição (não versionar)
+/keystore.properties
+/.keys/
+/dist/
+.tmp/
+/.kotlin/
+*.log

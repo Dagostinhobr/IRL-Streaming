@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">IRL Streaming</string>
+    <string name="notification_channel_live">Transmissão ao vivo</string>
+    <string name="notification_channel_live_desc">Mantém a transmissão ativa em segundo plano</string>
+    <string name="notification_title">Transmissão ao vivo</string>
+    <string name="notification_text">IRL Streaming está no ar</string>
+    <string name="notification_stop">Encerrar</string>
+</resources>
