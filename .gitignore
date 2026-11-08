@@ -28,3 +28,9 @@ ios/*.xcworkspace/xcuserdata/
 ios/*.xcodeproj/xcuserdata/
 ios/*.xcodeproj/project.xcworkspace/xcuserdata/
 *.xcuserstate
+
+# PT: Software proprietário do OP-COM e capturas USB — apenas análise local.
+# EN: Proprietary OP-COM software and USB captures — local analysis only.
+/Instalador e drivers/
+*.pcap
+*.pcapng

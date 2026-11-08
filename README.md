@@ -3,17 +3,17 @@
 An **independent** live streaming project, inspired by
 [Moblin](https://moblin.app/) (iOS). The Android app delivers the core IRL
 streaming workflow: camera + microphone → encoder → RTMP/RTMPS/SRT/WHIP, with
-chat, local recording, multiple targets, VDO.Ninja (P2P) and `moblin://` link
-import. The iOS app ships **native RTMP/RTMPS** plus the **VDO.Ninja P2P**
-studio.
+chat, local recording, multiple targets, VDO.Ninja (P2P), automatic
+Wi-Fi/mobile-data failover and `moblin://` link import. The iOS app ships
+**native RTMP/RTMPS** plus the **VDO.Ninja P2P** studio.
 
-> **Status:** Android beta (v0.8.0) and iOS (v0.9.0). Moblin has years of
+> **Status:** Android beta (v0.9.0) and iOS (v0.9.1). Moblin has years of
 > development and dozens of advanced features (scenes, widgets, SRTLA, remote
 > OBS, Apple Watch). See the [Differences from Moblin](#differences-from-moblin)
 > section before expecting 1:1 parity.
 
 **Download (Android):** [GitHub Releases](https://github.com/Dagostinhobr/IRL-Streaming/releases) —
-`IRL-Streaming-0.8.0.apk` (signed release) or `IRL-Streaming-0.8.0-debug.apk` (test build).
+`IRL-Streaming-0.9.0.apk` (signed release) or `IRL-Streaming-0.9.0-debug.apk` (test build).
 
 The iOS app is not distributed yet; it is built from source in Xcode. See
 [iOS app](#ios-app).
@@ -33,16 +33,17 @@ The iOS app is not distributed yet; it is built from source in Xcode. See
 | Area | Feature |
 |---|---|
 | Streaming | RTMP, RTMPS, SRT, RTSP and UDP (via [RootEncoder](https://github.com/pedroSG94/RootEncoder)) |
-| WebRTC | Native WHIP (experimental) and the VDO.Ninja P2P studio inside the app (WebView) |
-| VDO.Ninja | Room **or stream ID** (`?push=ID&password=...` / `?view=ID&p=...`), link import, in-app P2P studio and P2P target |
+| WebRTC | Native WHIP (experimental), the VDO.Ninja P2P studio inside the app (WebView), and native USB-camera publishing through the VDO.Ninja Android SDK |
+| VDO.Ninja | Room **or stream ID** (`?push=ID&password=...` / `?view=ID&p=...`), link import, in-app P2P studio and P2P target (USB cameras use native WebRTC) |
 | Video | H.264/AVC and H.265/HEVC, 480p/720p/1080p, 24/30/60 fps, configurable bitrate |
 | Audio | AAC, 64–192 kbps, 44.1/48 kHz, mono/stereo, echo cancellation and noise suppression |
 | VU meter | Microphone level meter on the main screen (−60 to 0 dB scale, fast attack and smooth decay) |
 | Microphone | Real-time input selection: automatic (built-in), **USB**, wired headset, Bluetooth; the USB camera microphone is chosen automatically |
-| Camera | Rear/front, camera list selection, **USB UVC camera over OTG**, pinch zoom, zoom presets, tap to focus, torch |
+| Camera | Rear/front, camera list selection, **USB UVC camera over OTG** (follows the phone orientation with rotation/mirror correction), pinch zoom, zoom presets, tap to focus, torch |
+| Image | **Brightness and contrast** for the preview, stream and recording, a **floating menu over the preview**, and **automatic brightness** from the ambient light sensor (Android) |
 | Orientation | **Automatic from the sensor** (portrait when upright, landscape when sideways) or locked to portrait/landscape, with an on-screen button and live switching |
 | Controls | Mute, black screen (stealth), keep screen on |
-| Connection | Live status, uptime, actual bitrate, actual FPS, dropped frames, automatic reconnection (5 attempts) |
+| Connection | Live status, uptime, actual bitrate, actual FPS, dropped frames, automatic reconnection (5 attempts), automatic Wi-Fi/mobile-data failover (Android) |
 | Recording | Local MP4 recorded alongside the stream, in `Android/data/app.streamlink/files/recordings` |
 | Targets | Named URL list with protocol, stream key and backup URL; switch with a tap |
 | Chat | Twitch over IRC/WebSocket: anonymous reading, sending with OAuth, badges, colours, message removal, sub/raid alerts |
@@ -63,9 +64,29 @@ The iOS app is not distributed yet; it is built from source in Xcode. See
 - **Orientation button** (side bar, rotation icon) → cycles
   **Auto → Portrait → Landscape**. In **Auto**, the video follows the sensor:
   upright publishes in portrait (720×1280, Instagram style) and sideways in
-  landscape (1280×720, YouTube style). In P2P the change is applied live without
-  stopping the stream; on RTMP/SRT targets the new resolution takes effect on the
-  next live stream.
+  landscape (1280×720, YouTube style), and the system rotation lock is respected.
+  In P2P the change is applied live without stopping the stream; on RTMP/SRT
+  targets the new resolution takes effect on the next live stream.
+- **Brightness/contrast button** (side bar, sliders icon) → opens the **floating
+  image menu** over the preview, with brightness, contrast and the automatic
+  brightness switch. Changes apply immediately to the preview, stream and
+  recording.
+
+### Brightness, contrast and automatic brightness
+
+The same controls are available in **Settings → Camera image** and in the floating
+menu over the preview (Android):
+
+- **Brightness** −100% to +100%; **contrast** 50% to 150%.
+- **Automatic brightness** uses the phone's ambient light sensor. Brightness is
+  adjusted smoothly in real time; turn the switch off to use the manual slider.
+  Devices without a light sensor show the automatic option disabled.
+- On **native cameras** the adjustment is applied in the OpenGL pipeline, so it
+  reaches the preview, the stream and the local recording.
+- On **USB cameras** the adjustment uses the camera's UVC hardware controls, so it
+  also reaches the native VDO.Ninja WebRTC publishing path. Some cameras do not
+  expose brightness or contrast; in that case the control has no effect and the
+  app keeps working normally.
 
 ---
 
@@ -101,13 +122,35 @@ The P2P studio is the **recommended and validated** path for streaming via
 VDO.Ninja: WebRTC is negotiated by VDO.Ninja itself, and the app only grants the
 camera/microphone permissions.
 
+### USB camera in VDO.Ninja P2P
+
+The VDO.Ninja WebView can only open cameras exposed by Android Camera2, so a UVC
+camera never appears in `getUserMedia`. When the main camera is **USB** and the
+target is `VDO.Ninja (P2P)`, the app therefore **publishes through the official
+VDO.Ninja Android SDK over native WebRTC (`libwebrtc`)** instead of opening the
+studio WebView:
+
+- the USB frames already used by the preview are relayed to the native encoder,
+  so the preview **never switches to the built-in camera**;
+- the published image follows the phone orientation (portrait upright, landscape
+  when lying down) with the same rotation/mirror correction configured in
+  **Settings → Camera → USB image correction**, and respects the system rotation lock;
+- while the stream is live the preview and the transmission use the current
+  orientation; rotating the phone rotates the published image without stopping;
+- mute, the microphone meter and stopping the stream work as in the other modes.
+
+The viewer link is unchanged: `https://vdo.ninja/?view=YOUR_ID&p=YOUR_PASSWORD`.
+VDO.Ninja derives a suffix from the password and adds it to the published ID, so
+the viewer must use the **same password**. If no password is configured, the app
+uses VDO.Ninja's public default password, matching a viewer link without `p=`.
+
 ### Native WHIP (experimental)
 
 The app can also publish the native camera via **WHIP** (WebRTC), keeping the
 quality and controls of the RTMP stream:
 
 - Endpoint: `https://whip.vdo.ninja/TOKEN` (token = stream ID or room).
-- Return link for OBS: `https://vdo.ninja/?whipview=TOKEN`.
+- Return link for OBS: `https://vdo.ninja/?whip=TOKEN` (`?whipview=TOKEN` is an alias).
 - The corresponding button is **Use as WHIP target (experimental)** — separate
   from the P2P target so the two paths are not confused.
 
@@ -144,8 +187,48 @@ the native camera.
   microphone meter on the main screen or use **Settings → Audio → Microphone**. The
   switch is applied in real time.
 - With a USB camera, zoom, torch and PiP are unavailable (UVC limitations).
+- USB cameras follow the phone sensor: the image is **portrait when the phone is
+  upright** and **landscape when it is lying down**. If the system rotation lock
+  is enabled, the image stays in the locked orientation. Rotation is applied live,
+  including during the transmission.
+- Many external cameras deliver frames rotated or mirrored and expose no
+  orientation metadata. **Settings → Camera → USB image correction** offers
+  rotation (0°, 90°, 180°, 270°) plus horizontal/vertical mirroring. The
+  correction is applied in real time to the preview, stream and recording,
+  on top of the app orientation. Use **Reset correction** to return to 0°.
 - If the camera is disconnected, the app falls back to the native camera and the
   built-in microphone on the next preparation.
+
+### Automatic network failover (Wi-Fi / mobile data)
+
+Android can keep the stream alive when the primary network fails, using the
+phone's **mobile data as a backup**. Enable it in
+**Settings → Camera and connection → Network failover (Wi-Fi / mobile data)**.
+
+- **Prefer Wi-Fi** is the default: Wi-Fi is used while it has internet access and
+  mobile data takes over when Wi-Fi is lost, disconnected or stops validating.
+  Failover is **enabled by default**; turn it off if you do not want the app to
+  use mobile data.
+- **Return to the preferred network** moves the stream back once the primary
+  network is available and validated again. Disable it to stay on the backup
+  network until the stream ends.
+- During a live stream the encoder/publisher is restarted once on the new
+  interface. The camera, preview, orientation and the rest of the pipeline keep
+  running; only the network connection is renegotiated.
+- The main-screen status pill shows the active network (`Wi-Fi` or
+  `mobile data`), highlighted when running on the backup link.
+- The app binds only **its own process** to the chosen network
+  (`ConnectivityManager.bindProcessToNetwork`); it does not change the phone's
+  system-wide network settings.
+
+This is **failover, not aggregation**: the two links do not add up bandwidth and
+only one is used at a time. True channel bonding (Wi-Fi + mobile simultaneously)
+requires **SRTLA** and a compatible relay (for example BELABOX), because plain
+SRT/RTMP/WebRTC cannot split one stream across two independent paths without a
+server that reorders and merges the packets.
+
+> iOS does not implement this failover yet; its streaming path keeps using the
+> system default network.
 
 ### Two-camera PiP
 
@@ -188,7 +271,7 @@ paths: native RTMP/RTMPS and the VDO.Ninja P2P studio.
 | Quality | 480p/720p/1080p, 24/30/60 fps, bitrate, mono/stereo, portrait/landscape, auto-reconnect |
 | Controls | Mute, front/rear camera, torch, zoom, local MP4 recording, live bitrate/FPS/uptime |
 | Reconnection | 5 attempts with exponential backoff, fresh stream per attempt |
-| Studio (P2P) | Embedded `WKWebView` publishing to VDO.Ninja with the iPhone camera and microphone |
+| Studio (P2P) | Embedded `WKWebView` publishing to VDO.Ninja with the iPhone camera and microphone; native mute, camera switch, torch, recording, mic meter and quality |
 | Links | Stream ID or room, password, display name, publish and view links, copy/share, paste-to-fill |
 | Chat | Twitch IRC over WebSocket: anonymous reading, OAuth sending, overlay over the studio |
 | Settings | Portuguese/English, keep screen on, privacy notes, reset |
@@ -292,8 +375,8 @@ To serve the download on the local network:
 
 ```bash
 mkdir -p dist
-cp app/build/outputs/apk/release/app-release.apk dist/IRL-Streaming-0.8.0.apk
-cp app/build/outputs/apk/debug/app-debug.apk dist/IRL-Streaming-0.8.0-debug.apk
+cp app/build/outputs/apk/release/app-release.apk dist/IRL-Streaming-0.9.0.apk
+cp app/build/outputs/apk/debug/app-debug.apk dist/IRL-Streaming-0.9.0-debug.apk
 python3 -m http.server 8080 --bind 0.0.0.0 --directory dist
 # open http://YOUR_IP:8080 on the phone
 ```
@@ -360,6 +443,7 @@ app/src/main/java/app/streamlink/
 │   └── SettingsRepository.kt    # JSON persistence (SharedPreferences + StateFlow)
 ├── stream/
 │   ├── StreamEngine.kt          # StreamBase: WhipStream (WebRTC) or GenericStream (RTMP/SRT/...)
+│   ├── NetworkBondingManager.kt # Wi-Fi/mobile-data failover (ConnectivityManager binding)
 │   ├── StreamUiState.kt         # observable live stream state
 │   └── StreamService.kt         # foreground service + notification
 ├── chat/
@@ -415,13 +499,15 @@ Stack: **Swift + SwiftUI + AVFoundation + HaishinKit 2.2.5 (RTMP) + WKWebView**.
 
 Implemented in this beta: the capture/encoder core, targets, Twitch chat,
 recording, statistics, reconnection, TTS, deep links, VDO.Ninja (P2P in the
-WebView) and USB microphone selection.
+WebView), USB microphone selection and **automatic Wi-Fi/mobile-data failover**
+(Android).
 
 **Not implemented yet** (suggested roadmap, in order of impact):
 
-1. **SRTLA / bonding** of multiple connections (Wi-Fi + mobile). RootEncoder supports
-   plain SRT; SRTLA requires a specific client (e.g. libsrt + SRTLA) and a compatible
-   server (BELABOX).
+1. **True SRTLA / channel bonding** (aggregating Wi-Fi + mobile simultaneously).
+   Automatic failover is implemented, but adding the two links' bandwidth needs an
+   SRTLA client and a compatible relay (e.g. BELABOX). RootEncoder only provides
+   plain SRT.
 2. **RIST** and stable WHIP against the VDO.Ninja service.
 3. **Scenes and widgets** (text, image, map, on-screen chat, scoreboard, alerts, LUTs,
    video filters). This is most of Moblin's code.
@@ -464,4 +550,6 @@ format compatibility. Respect each platform's terms of service and streaming law
 (privacy, image rights, driving while streaming, etc.).
 
 Code licence for this repository: MIT (suggested). Dependencies keep their own
-licences, including RootEncoder (Apache 2.0).
+licences, including RootEncoder (Apache 2.0), libwebrtc via
+`stream-webrtc-android` (Apache 2.0) and the vendored VDO.Ninja Android SDK
+sources under `app/src/main/java/ninja/vdo/sdk` (MPL-2.0).

@@ -27,6 +27,9 @@ data class StreamUiState(
     // PT: A câmera principal ativa é uma câmera USB (UVC).
     // EN: The active main camera is a USB (UVC) camera.
     val usbCamera: Boolean = false,
+    // PT: Publicação P2P da câmara USB feita pelo SDK nativo do VDO.Ninja.
+    // EN: USB camera P2P publishing done by the native VDO.Ninja SDK.
+    val p2pNative: Boolean = false,
     val zoom: Float = 1f,
     val maxZoom: Float = 4f,
     val resolutionLabel: String = "",
@@ -37,7 +40,17 @@ data class StreamUiState(
     val dualCameraActive: Boolean = false,
     // PT: Motivo pelo qual o modo PiP não pôde ser ativado.
     // EN: Reason why PiP mode could not be enabled.
-    val dualCameraError: String? = null
+    val dualCameraError: String? = null,
+    // PT: Failover automático entre Wi-Fi e dados móveis.
+    // EN: Automatic failover between Wi-Fi and mobile data.
+    val bondingEnabled: Boolean = false,
+    val bondingNetwork: BondingNetworkType = BondingNetworkType.NONE,
+    val bondingWifiAvailable: Boolean = false,
+    val bondingCellularAvailable: Boolean = false,
+    val bondingSwitchedToBackup: Boolean = false,
+    // PT: Sensor de luz ambiente disponível para o brilho automático.
+    // EN: Ambient light sensor available for automatic brightness.
+    val ambientLightAvailable: Boolean = true
 ) {
     val isLive: Boolean
         get() = status == StreamStatus.LIVE

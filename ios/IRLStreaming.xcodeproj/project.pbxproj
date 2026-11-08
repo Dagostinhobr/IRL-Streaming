@@ -18,7 +18,9 @@
 		7E083BFCA3F1CD66809C3123 /* RTMPHaishinKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3C68B1751D69C7377FB1DA39 /* RTMPHaishinKit */; };
 		896B68811E7B35300306E70E /* IRLStreamingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B32E34D4617BDD4EA8EACB6A /* IRLStreamingApp.swift */; };
 		8997BE497FA42167626A4382 /* HaishinKit in Frameworks */ = {isa = PBXBuildFile; productRef = CBD4B91AC49F908E07DEC344 /* HaishinKit */; };
+		92E38E288499D5BD2F45AADD /* P2PStudioUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB257EFC71C6C5311683C40 /* P2PStudioUITests.swift */; };
 		99047FE69AA49B3AC59260D1 /* VdoNinjaLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA95251D6218FF12EA7DCD /* VdoNinjaLinks.swift */; };
+		A315B011541B27701FDEC697 /* P2PStudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F3A40459764118DFA3244CB /* P2PStudio.swift */; };
 		A690B68140C2ADC8D694F125 /* RtmpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62A17AC7A461D8BFBD9CE293 /* RtmpView.swift */; };
 		ACB691F1BCFCEC1BBDF8A8ED /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C8D6A5669F9963F63179B87 /* SettingsStore.swift */; };
 		C3265DB8B480D76B7ED2C902 /* RtmpTargetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50912AE5F821B46A635D8EC /* RtmpTargetsView.swift */; };
@@ -26,12 +28,25 @@
 		EFB93A57E749775113328D8B /* VdoLinksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 926942BAA5CBAF1DAC4387FD /* VdoLinksView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		B89F1834B532CD6219941EE9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = ACE6F1D9AE13FBCA06562E56 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 250779EFF15CD3EA91E3DE9A;
+			remoteInfo = IRLStreaming;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		0A78AB1FE5CD28FCF63035CD /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		0BB257EFC71C6C5311683C40 /* P2PStudioUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = P2PStudioUITests.swift; sourceTree = "<group>"; };
 		3C8D6A5669F9963F63179B87 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		3F3A40459764118DFA3244CB /* P2PStudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = P2PStudio.swift; sourceTree = "<group>"; };
 		427F4B00F8A59BA81B2FE165 /* RtmpEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RtmpEngine.swift; sourceTree = "<group>"; };
 		5A7CC6899EE8B93D2DD3DCB2 /* UI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI.swift; sourceTree = "<group>"; };
 		62A17AC7A461D8BFBD9CE293 /* RtmpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RtmpView.swift; sourceTree = "<group>"; };
+		76C1EEAE4B0E77B7AAB877B4 /* IRLStreamingUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = IRLStreamingUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BAA95251D6218FF12EA7DCD /* VdoNinjaLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdoNinjaLinks.swift; sourceTree = "<group>"; };
 		8C993CBF4746A0A48992E62D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		926942BAA5CBAF1DAC4387FD /* VdoLinksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdoLinksView.swift; sourceTree = "<group>"; };
@@ -62,6 +77,7 @@
 			isa = PBXGroup;
 			children = (
 				E6040556AB7A356D81944807 /* IRLStreaming */,
+				CEAD98AA5FEF4834E075FB38 /* IRLStreamingUITests */,
 				B2925DE8BE9AE3FC3DF6745D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -70,8 +86,17 @@
 			isa = PBXGroup;
 			children = (
 				FB0E9241DF83BA63080A790E /* IRLStreaming.app */,
+				76C1EEAE4B0E77B7AAB877B4 /* IRLStreamingUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		CEAD98AA5FEF4834E075FB38 /* IRLStreamingUITests */ = {
+			isa = PBXGroup;
+			children = (
+				0BB257EFC71C6C5311683C40 /* P2PStudioUITests.swift */,
+			);
+			path = IRLStreamingUITests;
 			sourceTree = "<group>";
 		};
 		E6040556AB7A356D81944807 /* IRLStreaming */ = {
@@ -81,6 +106,7 @@
 				ED6BF6744FF7A81C14CF6693 /* ChatView.swift */,
 				B32E34D4617BDD4EA8EACB6A /* IRLStreamingApp.swift */,
 				BC6562C895023BCFB2A9A7C2 /* Models.swift */,
+				3F3A40459764118DFA3244CB /* P2PStudio.swift */,
 				0A78AB1FE5CD28FCF63035CD /* RootView.swift */,
 				427F4B00F8A59BA81B2FE165 /* RtmpEngine.swift */,
 				D50912AE5F821B46A635D8EC /* RtmpTargetsView.swift */,
@@ -120,6 +146,24 @@
 			productReference = FB0E9241DF83BA63080A790E /* IRLStreaming.app */;
 			productType = "com.apple.product-type.application";
 		};
+		DCA0475CCA98EF0D4A24EEBC /* IRLStreamingUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 97C0E8BCF2948B12BC7110EE /* Build configuration list for PBXNativeTarget "IRLStreamingUITests" */;
+			buildPhases = (
+				017808A7FD08F725F5A0FA56 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				244AB59E4F9F660CD418667A /* PBXTargetDependency */,
+			);
+			name = IRLStreamingUITests;
+			packageProductDependencies = (
+			);
+			productName = IRLStreamingUITests;
+			productReference = 76C1EEAE4B0E77B7AAB877B4 /* IRLStreamingUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -131,6 +175,10 @@
 				TargetAttributes = {
 					250779EFF15CD3EA91E3DE9A = {
 						ProvisioningStyle = Automatic;
+					};
+					DCA0475CCA98EF0D4A24EEBC = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = 250779EFF15CD3EA91E3DE9A;
 					};
 				};
 			};
@@ -152,6 +200,7 @@
 			projectRoot = "";
 			targets = (
 				250779EFF15CD3EA91E3DE9A /* IRLStreaming */,
+				DCA0475CCA98EF0D4A24EEBC /* IRLStreamingUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -168,6 +217,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		017808A7FD08F725F5A0FA56 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92E38E288499D5BD2F45AADD /* P2PStudioUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8F2179237210A900D1A01940 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -175,6 +232,7 @@
 				5C6266D2E145AA409AF6B4A8 /* ChatView.swift in Sources */,
 				896B68811E7B35300306E70E /* IRLStreamingApp.swift in Sources */,
 				2A3192C2D0CE6ED758B12699 /* Models.swift in Sources */,
+				A315B011541B27701FDEC697 /* P2PStudio.swift in Sources */,
 				670242AA835A91A3A89C8F35 /* RootView.swift in Sources */,
 				52BAD1FA5F95F6A425810FDE /* RtmpEngine.swift in Sources */,
 				C3265DB8B480D76B7ED2C902 /* RtmpTargetsView.swift in Sources */,
@@ -191,11 +249,20 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		244AB59E4F9F660CD418667A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 250779EFF15CD3EA91E3DE9A /* IRLStreaming */;
+			targetProxy = B89F1834B532CD6219941EE9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
 		74CD35E0366C0FA72F6D0E6D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APP_BUNDLE_ID = app.streamlink.ios;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -245,7 +312,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 0.9.0;
+				MARKETING_VERSION = 0.9.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -262,6 +329,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APP_BUNDLE_ID = app.streamlink.ios;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -305,7 +373,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 0.9.0;
+				MARKETING_VERSION = 0.9.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -330,7 +398,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.streamlink.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID)";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -349,11 +417,47 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.streamlink.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID)";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
+		};
+		C6F36FFC723914D4409918CC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).uitests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = IRLStreaming;
+			};
+			name = Debug;
+		};
+		CA6079BCF806BC0466EBB519 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_ID).uitests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = IRLStreaming;
+			};
+			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
@@ -363,6 +467,15 @@
 			buildConfigurations = (
 				BB931F9B97771B359DB5E8F4 /* Debug */,
 				979C7B709D919182FCB40A21 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		97C0E8BCF2948B12BC7110EE /* Build configuration list for PBXNativeTarget "IRLStreamingUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C6F36FFC723914D4409918CC /* Debug */,
+				CA6079BCF806BC0466EBB519 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

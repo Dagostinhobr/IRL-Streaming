@@ -396,6 +396,33 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
                 _events.tryEmit(L10n.t("Informe o ID de ligação ou a sala do VDO.Ninja.", "Provide the VDO.Ninja stream ID or room."))
                 return
             }
+            if (CameraCapabilities.isUsbCameraId(current.cameraId)) {
+                // PT: O WebView do VDO.Ninja só consegue abrir câmaras nativas do
+                // PT: Android; a câmara USB (UVC) não aparece no getUserMedia. Nesse
+                // PT: caso a publicação é feita pelo SDK nativo do VDO.Ninja, usando
+                // PT: os mesmos frames da câmara USB do preview. O estúdio WebView
+                // PT: não é aberto, por isso o preview não muda para a câmara interna.
+                // EN: The VDO.Ninja WebView can only open Android native cameras;
+                // EN: the USB (UVC) camera is not exposed to getUserMedia. In that
+                // EN: case publishing goes through the native VDO.Ninja SDK, using
+                // EN: the same USB camera frames as the preview. The WebView studio
+                // EN: is not opened, so the preview never switches to the built-in camera.
+                val started = engine.startUsbVdo(resolved(current), vdo)
+                if (started) {
+                    _events.tryEmit(
+                        L10n.t(
+                            "Câmara USB: a publicar no VDO.Ninja pelo WebRTC nativo.",
+                            "USB camera: publishing to VDO.Ninja through native WebRTC."
+                        )
+                    )
+                    if (current.chat.provider == ChatProvider.TWITCH && current.chat.channel.isNotBlank()) {
+                        chatManager.connect(current.chat)
+                    }
+                } else {
+                    engine.state.value.error?.let { _events.tryEmit(it) }
+                }
+                return
+            }
             // PT: O estúdio WebRTC corre embutido por baixo da Home, sem navegar
             // PT: para outra tela. Assim os controles do app continuam disponíveis.
             // EN: The WebRTC studio runs embedded beneath Home, without navigating
@@ -549,6 +576,22 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
             engine.applyDualCamera(after)
         }
 
+        if (before.uvcTransform != after.uvcTransform) {
+            // PT: A correção da câmara USB aplica-se logo, no preview e na live.
+            // EN: The USB camera correction applies right away, in preview and live.
+            engine.applyUvcTransform(after.uvcTransform)
+        }
+
+        if (before.cameraImage != after.cameraImage) {
+            // PT: Brilho/contraste aplicam-se em tempo real, sem reiniciar a câmara.
+            // EN: Brightness/contrast apply in real time without restarting the camera.
+            engine.applyCameraImage(after.cameraImage)
+        }
+
+        if (before.networkBonding != after.networkBonding) {
+            engine.applyNetworkBonding(after.networkBonding)
+        }
+
         if (before.chat != after.chat) {
             chatReconnectJob?.cancel()
             chatReconnectJob = viewModelScope.launch {
@@ -699,6 +742,26 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         transform: (app.streamlink.data.DualCameraSettings) -> app.streamlink.data.DualCameraSettings
     ) {
         updateSettings { it.copy(dualCamera = transform(it.dualCamera)) }
+    }
+
+    /**
+     * PT: Atualiza a correção de orientação/espelhamento da câmara USB.
+     * EN: Updates the USB camera orientation/mirroring correction.
+     */
+    fun updateUvcTransform(
+        transform: (app.streamlink.data.UvcTransformSettings) -> app.streamlink.data.UvcTransformSettings
+    ) {
+        updateSettings { it.copy(uvcTransform = transform(it.uvcTransform)) }
+    }
+
+    /**
+     * PT: Atualiza o brilho/contraste da imagem da câmara.
+     * EN: Updates the camera image brightness/contrast.
+     */
+    fun updateCameraImage(
+        transform: (app.streamlink.data.CameraImageSettings) -> app.streamlink.data.CameraImageSettings
+    ) {
+        updateSettings { it.copy(cameraImage = transform(it.cameraImage)) }
     }
 
     fun clearDualCameraError() {

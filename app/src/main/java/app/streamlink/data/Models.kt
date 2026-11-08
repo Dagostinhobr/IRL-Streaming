@@ -222,6 +222,83 @@ data class DualCameraSettings(
     val rotation: Int = 90
 )
 
+/**
+ * PT: Correção aplicada apenas às câmeras USB (UVC). Muitas câmeras externas
+ * PT: entregam os frames rodados ou espelhados, sem metadados de orientação.
+ * PT: A correção é aplicada ao preview e ao vídeo transmitido/gravado.
+ *
+ * EN: Correction applied only to USB (UVC) cameras. Many external cameras
+ * EN: deliver frames rotated or mirrored, without orientation metadata.
+ * EN: The correction is applied to both the preview and the streamed/recorded
+ * EN: video.
+ */
+@Serializable
+data class UvcTransformSettings(
+    /**
+     * PT: Rotação em graus (0, 90, 180 ou 270), somada à orientação da app.
+     * EN: Rotation in degrees (0, 90, 180 or 270), added to the app orientation.
+     */
+    val rotation: Int = 0,
+    val flipHorizontal: Boolean = false,
+    val flipVertical: Boolean = false
+)
+
+/**
+ * PT: Ajuste de brilho e contraste da imagem da câmara. O brilho pode ser
+ * PT: controlado manualmente ou automaticamente pelo sensor de luz ambiente.
+ *
+ * EN: Camera image brightness and contrast. Brightness can be controlled
+ * EN: manually or automatically by the ambient light sensor.
+ */
+@Serializable
+data class CameraImageSettings(
+    /**
+     * PT: Brilho manual, de -1 (mais escuro) a 1 (mais claro). 0 = neutro.
+     * EN: Manual brightness, from -1 (darker) to 1 (brighter). 0 = neutral.
+     */
+    val brightness: Float = 0f,
+    /**
+     * PT: Contraste de 0.5 (mais suave) a 1.5 (mais forte). 1 = neutro.
+     * EN: Contrast from 0.5 (softer) to 1.5 (stronger). 1 = neutral.
+     */
+    val contrast: Float = 1f,
+    /**
+     * PT: Ajusta o brilho automaticamente à luz do ambiente. Quando ativo, o
+     * PT: valor manual de brilho é ignorado.
+     * EN: Adjusts brightness automatically to the ambient light. When enabled,
+     * EN: the manual brightness value is ignored.
+     */
+    val autoBrightness: Boolean = false
+)
+
+/**
+ * PT: Failover automático de rede durante a transmissão. O Wi-Fi é a ligação
+ * PT: principal; quando cai, a app passa para os dados móveis e volta ao Wi-Fi
+ * PT: quando este fica novamente estável.
+ *
+ * EN: Automatic network failover while streaming. Wi-Fi is the primary link;
+ * EN: when it drops, the app moves to mobile data and returns to Wi-Fi once it
+ * EN: becomes stable again.
+ */
+@Serializable
+data class NetworkBondingSettings(
+    val enabled: Boolean = true,
+    /**
+     * PT: `true` prefere Wi-Fi e usa os dados móveis como reserva; `false`
+     * PT: inverte a ordem.
+     * EN: `true` prefers Wi-Fi and uses mobile data as the backup; `false`
+     * EN: reverses the order.
+     */
+    val preferWifi: Boolean = true,
+    /**
+     * PT: depois de mudar para a rede de reserva, volta automaticamente à rede
+     * PT: preferida quando ela recupera.
+     * EN: after switching to the backup network, automatically returns to the
+     * EN: preferred network when it recovers.
+     */
+    val autoSwitchBack: Boolean = true
+)
+
 @Serializable
 data class AppSettings(
     val targets: List<StreamTarget> = defaultTargets(),
@@ -254,7 +331,22 @@ data class AppSettings(
     val showChatOverlay: Boolean = true,
     val chat: ChatSettings = ChatSettings(),
     val vdoNinja: VdoNinjaSettings = VdoNinjaSettings(),
-    val dualCamera: DualCameraSettings = DualCameraSettings()
+    val dualCamera: DualCameraSettings = DualCameraSettings(),
+    /**
+     * PT: Correção de posição/espelhamento da câmera USB (UVC).
+     * EN: Position/mirror correction for the USB (UVC) camera.
+     */
+    val uvcTransform: UvcTransformSettings = UvcTransformSettings(),
+    /**
+     * PT: Brilho e contraste da imagem da câmara.
+     * EN: Camera image brightness and contrast.
+     */
+    val cameraImage: CameraImageSettings = CameraImageSettings(),
+    /**
+     * PT: Failover automático entre Wi-Fi e dados móveis.
+     * EN: Automatic failover between Wi-Fi and mobile data.
+     */
+    val networkBonding: NetworkBondingSettings = NetworkBondingSettings()
 ) {
     fun selectedTarget(): StreamTarget? =
         targets.firstOrNull { it.id == selectedTargetId } ?: targets.firstOrNull()

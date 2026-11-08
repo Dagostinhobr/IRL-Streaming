@@ -22,12 +22,16 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>IRL Streaming uses the camera to publish your live stream.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>IRL Streaming can publish RTMP to a server on your local network.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>IRL Streaming uses the microphone to publish audio in your live stream.</string>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIRequiresFullScreen</key>

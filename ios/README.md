@@ -11,7 +11,7 @@ Native SwiftUI app with two publishing paths:
 - **Bundle identifier:** `app.streamlink.ios` (change it if your team cannot
   register it; see the troubleshooting note below)
 - **Deployment target:** iOS 16.0
-- **Version:** 0.9.0 (build 1)
+- **Version:** 0.9.1 (build 1)
 - **Project generator:** [XcodeGen](https://github.com/yonaskolb/XcodeGen)
 - **RTMP stack:** [HaishinKit](https://github.com/shogo4405/HaishinKit.swift)
   2.2.5 (`HaishinKit` + `RTMPHaishinKit` products)
@@ -30,7 +30,8 @@ Native SwiftUI app with two publishing paths:
 | `IRLStreaming/RtmpEngine.swift` | Native RTMP/RTMPS engine: capture, encoder, targets, recording, reconnection, preview |
 | `IRLStreaming/RtmpView.swift` | Live studio: camera preview, controls, quality sheet, lifecycle |
 | `IRLStreaming/RtmpTargetsView.swift` | RTMP/RTMPS target list (create, edit, select, delete) |
-| `IRLStreaming/StudioView.swift` | Embedded VDO.Ninja studio (`WKWebView`) |
+| `IRLStreaming/StudioView.swift` | Embedded VDO.Ninja studio (`WKWebView`), native controls, P2P quality sheet |
+| `IRLStreaming/P2PStudio.swift` | P2P controller, MediaRecorder-to-file recorder, camera-facing detection, WebRTC torch and injected JavaScript bridge |
 | `IRLStreaming/VdoLinksView.swift` | Stream ID/room, quality and publish/view links |
 | `IRLStreaming/ChatView.swift` | Twitch chat UI, overlay and configuration |
 | `IRLStreaming/TwitchChatClient.swift` | Twitch IRC over WebSocket client |
@@ -39,6 +40,7 @@ Native SwiftUI app with two publishing paths:
 | `IRLStreaming/SettingsStore.swift` | `UserDefaults` persistence |
 | `IRLStreaming/VdoNinjaLinks.swift` | VDO.Ninja URL builder and link parser |
 | `IRLStreaming/UI.swift` | Shared theme and components |
+| `IRLStreamingUITests/P2PStudioUITests.swift` | XCUITest: P2P controls, mute, quality sheet, reload, close and background lifecycle |
 
 ## Live (RTMP/RTMPS)
 
@@ -50,6 +52,7 @@ The **Live** tab owns the native camera and microphone. It offers:
   portrait/landscape, video bitrate, audio bitrate, mono/stereo and automatic
   reconnection.
 - **Controls**: mute, front/rear camera, torch, recording and zoom.
+- **Local recording** can also be reached from **Files → On My iPhone → IRL Streaming**.
 - **Status**: live indicator, elapsed time, measured bitrate and FPS.
 - **Reconnection**: up to 5 attempts with exponential backoff (2–16 s). A fresh
   RTMP stream is created for each attempt so codec headers are never reused from
@@ -150,6 +153,67 @@ The app uses the same conventions as the Android version:
 Examples in the UI are fictional (`meu-stream-7f3a`, `irl-casa-9f2`). Use your own
 values and avoid sharing links that contain a real password.
 
+### P2P studio controls
+
+While the studio is open, the bottom panel offers the same controls as **Live**
+without leaving the WebView:
+
+| Control | How it works |
+|---|---|
+| Microphone meter | The injected script analyses the local `MediaStream` with a Web Audio analyser and posts the level to the app |
+| Mute | Enables/disables the audio track of the local stream directly in the page (`window.__irlSetMuted`) |
+| Switch camera | Calls the VDO.Ninja flip-camera button when present, otherwise finds the "flip/switch camera" control. The button shows **B** (back) or **F** (front), following the active track |
+| Torch | Uses the WebRTC **`torch` track constraint** (`applyConstraints`, iOS 17.4+). This keeps the capture session owned by WebKit, so the preview is not interrupted. A front camera has no torch and shows a notice |
+| Record | `MediaRecorder` on the local stream; chunks are sent as base64 to the app and written to `Documents/p2p_YYYYMMDD_HHMMSS.{mp4,webm}`. Closing the studio or sending the app to the background finalises an active recording instead of deleting it |
+| Quality | Opens the P2P quality sheet; changes reload the studio and apply on the next load |
+
+The studio is stopped when the app goes to the background or when you leave the
+tab, which releases the camera so **Live** can use it again. The toolbar also has
+reload, quality, open-in-Safari and close buttons.
+
+> **Note:** iOS supports **MP4 recording only in recent versions**; when
+> `video/mp4` is not available from `MediaRecorder`, the app falls back to
+> WebM. Files are stored inside the app sandbox, not in the Photos library.
+> File sharing is enabled, so recordings also appear in the **Files** app under
+> **On My iPhone → IRL Streaming**.
+
+## UI tests
+
+The P2P studio has XCUITest coverage for the native controls. The tests use the
+accessibility identifiers `p2p.streamId`, `p2p.open`, `p2p.mute`, `p2p.flip`,
+`p2p.torch`, `p2p.record`, `p2p.quality`, `p2p.reload`, `p2p.close` and
+`p2p.quality.apply` / `p2p.quality.cancel`, so they do not depend on the
+selected language.
+
+They run with a fictional stream ID (`irl-test-4f2a`) and isolated preferences
+(`-uiTest -resetSettings`), so your real VDO.Ninja settings are not changed.
+
+```bash
+cd ios
+xcodegen generate
+xcodebuild test -project IRLStreaming.xcodeproj -scheme IRLStreaming \
+  -destination 'id=YOUR_DEVICE_UDID' \
+  -allowProvisioningUpdates \
+  DEVELOPMENT_TEAM=YOUR_TEAM_ID \
+  APP_BUNDLE_ID=app.streamlink.ios.yourname
+```
+
+The suite covers:
+
+- opening the studio and the five native controls;
+- microphone mute on/off through the accessibility value;
+- the camera button reporting **B** (back) and **F** (front);
+- the torch turning on and off without blacking out the preview (brightness is
+  measured on screenshots before, during and after the torch);
+- opening and cancelling the P2P quality sheet;
+- reloading the page without losing the controls;
+- closing the studio and returning to the setup form;
+- stopping the studio and releasing the camera when the app goes to the
+  background.
+
+The tests need a physical device or a booted simulator with camera access. A
+debug screenshot of the controls is attached to the `.xcresult` bundle.
+
 ## Twitch chat
 
 - **Read-only:** set the channel in **Chat → gear icon**. No account is needed.
@@ -166,6 +230,12 @@ values and avoid sharing links that contain a real password.
   require additional AVFoundation work and hardware support.
 - **No backup target failover** (the Android app has a backup URL; iOS switches
   manually).
+- **P2P camera control is limited by VDO.Ninja and WebKit:** the torch requires
+  the WebRTC `torch` constraint (iOS 17.4+) and a back camera, and camera
+  switching depends on the VDO.Ninja controls exposed in the page. P2P recording
+  is a local copy of the WebRTC stream, so its resolution follows the outgoing
+  stream. On iOS 27 the preview can shrink after switching cameras; this is a
+  WebKit regression and reloading the studio restores the full frame.
 - A free Apple ID signature expires after **7 days**; TestFlight and long-lived
   installs require a paid Apple Developer account.
 

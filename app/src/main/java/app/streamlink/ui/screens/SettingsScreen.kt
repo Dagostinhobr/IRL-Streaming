@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -315,14 +316,156 @@ fun SettingsScreen(
                         Text(
                             tr(
                                 "Câmera USB ativa: zoom, lanterna e PiP ficam indisponíveis. " +
-                                    "O áudio USB da câmera é usado automaticamente quando existe.",
+                                    "O áudio USB da câmera é usado automaticamente quando existe. " +
+                                    "A imagem segue a orientação do telemóvel: vertical em pé e " +
+                                    "horizontal deitado, respeitando o bloqueio de rotação.",
                                 "USB camera active: zoom, torch and PiP are unavailable. " +
-                                    "The camera's USB audio is used automatically when present."
+                                    "The camera's USB audio is used automatically when present. " +
+                                    "The image follows the phone orientation: portrait upright and " +
+                                    "landscape when lying down, respecting the rotation lock."
                             ),
                             color = Mint,
                             fontSize = 11.sp
                         )
+
+                        SectionDivider()
+                        SettingLabel(tr("Correção da imagem USB", "USB image correction"))
+                        Text(
+                            tr(
+                                "Use estas opções se a imagem da câmera USB aparecer de lado, " +
+                                    "ao contrário ou espelhada. A correção aplica-se ao preview, " +
+                                    "à transmissão e à gravação.",
+                                "Use these options if the USB camera image appears sideways, " +
+                                    "upside down or mirrored. The correction applies to the preview, " +
+                                    "the stream and the recording."
+                            ),
+                            color = TextMuted,
+                            fontSize = 12.sp
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        SettingLabel(tr("Rotação", "Rotation"))
+                        ChoiceChips(
+                            options = listOf(0, 90, 180, 270),
+                            selected = settings.uvcTransform.rotation,
+                            label = { "$it°" },
+                            onSelect = { value ->
+                                viewModel.updateUvcTransform { it.copy(rotation = value) }
+                            }
+                        )
+                        SectionDivider()
+                        SwitchSettingRow(
+                            title = tr("Espelhar horizontalmente", "Mirror horizontally"),
+                            subtitle = tr(
+                                "Inverte a imagem da esquerda para a direita.",
+                                "Flips the image from left to right."
+                            ),
+                            checked = settings.uvcTransform.flipHorizontal,
+                            onCheckedChange = { value ->
+                                viewModel.updateUvcTransform { it.copy(flipHorizontal = value) }
+                            }
+                        )
+                        SectionDivider()
+                        SwitchSettingRow(
+                            title = tr("Inverter verticalmente", "Flip vertically"),
+                            subtitle = tr(
+                                "Inverte a imagem de cima para baixo.",
+                                "Flips the image from top to bottom."
+                            ),
+                            checked = settings.uvcTransform.flipVertical,
+                            onCheckedChange = { value ->
+                                viewModel.updateUvcTransform { it.copy(flipVertical = value) }
+                            }
+                        )
+                        if (settings.uvcTransform != app.streamlink.data.UvcTransformSettings()) {
+                            TextButton(
+                                onClick = {
+                                    viewModel.updateUvcTransform { app.streamlink.data.UvcTransformSettings() }
+                                }
+                            ) {
+                                Text(
+                                    tr("Repor correção", "Reset correction"),
+                                    color = Mint,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
                     }
+                }
+            }
+
+            item {
+                SettingsSection(tr("Imagem da câmara", "Camera image")) {
+                    val autoBrightness =
+                        settings.cameraImage.autoBrightness && state.ambientLightAvailable
+                    SwitchSettingRow(
+                        title = tr("Brilho automático", "Automatic brightness"),
+                        subtitle = when {
+                            !state.ambientLightAvailable -> tr(
+                                "Este aparelho não tem sensor de luz.",
+                                "This device has no light sensor."
+                            )
+                            autoBrightness -> tr(
+                                "O brilho segue a luz do ambiente. Desligue para ajustar à mão.",
+                                "Brightness follows the ambient light. Turn it off to adjust manually."
+                            )
+                            else -> tr(
+                                "Ajusta o brilho à luz do ambiente.",
+                                "Adjusts brightness to the ambient light."
+                            )
+                        },
+                        checked = autoBrightness,
+                        enabled = state.ambientLightAvailable,
+                        onCheckedChange = { value ->
+                            viewModel.updateCameraImage { it.copy(autoBrightness = value) }
+                        }
+                    )
+                    SectionDivider()
+                    SliderSettingRow(
+                        title = tr("Brilho", "Brightness"),
+                        subtitle = if (autoBrightness) {
+                            tr("Controlado pelo sensor de luz.", "Controlled by the light sensor.")
+                        } else {
+                            tr("Clareia ou escurece a imagem.", "Makes the image brighter or darker.")
+                        },
+                        value = settings.cameraImage.brightness * 100f,
+                        valueRange = -100f..100f,
+                        steps = 39,
+                        enabled = !autoBrightness,
+                        valueLabel = signedPercent(settings.cameraImage.brightness * 100f),
+                        onValueChange = { value ->
+                            viewModel.updateCameraImage {
+                                it.copy(brightness = (value / 100f).coerceIn(-1f, 1f))
+                            }
+                        }
+                    )
+                    SectionDivider()
+                    SliderSettingRow(
+                        title = tr("Contraste", "Contrast"),
+                        subtitle = tr(
+                            "Aumenta ou suaviza a diferença entre claros e escuros.",
+                            "Increases or softens the difference between light and dark."
+                        ),
+                        value = settings.cameraImage.contrast * 100f,
+                        valueRange = 50f..150f,
+                        steps = 19,
+                        valueLabel = "${(settings.cameraImage.contrast * 100f).toInt()}%",
+                        onValueChange = { value ->
+                            viewModel.updateCameraImage {
+                                it.copy(contrast = (value / 100f).coerceIn(0.5f, 1.5f))
+                            }
+                        }
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        tr(
+                            "Nas câmaras USB o ajuste usa os controlos de hardware do dispositivo. " +
+                                "Alguns modelos podem não permitir contraste.",
+                            "On USB cameras the adjustment uses the device's hardware controls. " +
+                                "Some models may not support contrast."
+                        ),
+                        color = TextMuted,
+                        fontSize = 11.sp
+                    )
                 }
             }
 
@@ -345,6 +488,67 @@ fun SettingsScreen(
                             viewModel.updateSettings { it.copy(autoReconnect = value) }
                         }
                     )
+                    SectionDivider()
+                    SwitchSettingRow(
+                        title = tr(
+                            "Failover de rede (Wi-Fi / dados móveis)",
+                            "Network failover (Wi-Fi / mobile data)"
+                        ),
+                        subtitle = tr(
+                            "Mantém a transmissão viva: usa a rede principal e passa para a outra quando ela falha.",
+                            "Keeps the stream alive: uses the primary network and moves to the other one when it fails."
+                        ),
+                        checked = settings.networkBonding.enabled,
+                        onCheckedChange = { value ->
+                            viewModel.updateSettings {
+                                it.copy(networkBonding = it.networkBonding.copy(enabled = value))
+                            }
+                        }
+                    )
+                    if (settings.networkBonding.enabled) {
+                        SectionDivider()
+                        SwitchSettingRow(
+                            title = tr("Preferir Wi-Fi", "Prefer Wi-Fi"),
+                            subtitle = tr(
+                                "Os dados móveis ficam como rede de reserva.",
+                                "Mobile data is used as the backup network."
+                            ),
+                            checked = settings.networkBonding.preferWifi,
+                            onCheckedChange = { value ->
+                                viewModel.updateSettings {
+                                    it.copy(networkBonding = it.networkBonding.copy(preferWifi = value))
+                                }
+                            }
+                        )
+                        SectionDivider()
+                        SwitchSettingRow(
+                            title = tr(
+                                "Voltar à rede preferida",
+                                "Return to the preferred network"
+                            ),
+                            subtitle = tr(
+                                "Quando a rede principal recupera, a transmissão volta para ela.",
+                                "When the primary network recovers, the stream moves back to it."
+                            ),
+                            checked = settings.networkBonding.autoSwitchBack,
+                            onCheckedChange = { value ->
+                                viewModel.updateSettings {
+                                    it.copy(networkBonding = it.networkBonding.copy(autoSwitchBack = value))
+                                }
+                            }
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            tr(
+                                "Isto é failover, não agregação: as duas redes não somam largura de banda. " +
+                                    "A agregação real exige SRTLA e um relay compatível.",
+                                "This is failover, not bonding: the two networks do not add up bandwidth. " +
+                                    "True aggregation requires SRTLA and a compatible relay."
+                            ),
+                            color = TextMuted,
+                            fontSize = 11.sp
+                        )
+                    }
                     SectionDivider()
                     Text(
                         tr("Toque no preview para focar, use pinça para zoom e os botões laterais para lanterna, troca de câmera e mudo.", "Tap the preview to focus, pinch to zoom and use the side buttons for torch, camera switch and mute."),
@@ -768,6 +972,51 @@ private fun AudioInputRow(
             }
         }
     }
+}
+
+@Composable
+private fun SliderSettingRow(
+    title: String,
+    subtitle: String,
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    valueLabel: String,
+    steps: Int = 0,
+    enabled: Boolean = true,
+    onValueChange: (Float) -> Unit
+) {
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                title,
+                color = if (enabled) TextPrimary else TextMuted,
+                fontSize = 15.sp
+            )
+            Text(
+                valueLabel,
+                color = if (enabled) Mint else TextMuted,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+        Text(subtitle, color = TextMuted, fontSize = 12.sp)
+        Slider(
+            value = value.coerceIn(valueRange.start, valueRange.endInclusive),
+            onValueChange = onValueChange,
+            valueRange = valueRange,
+            steps = steps,
+            enabled = enabled
+        )
+    }
+}
+
+private fun signedPercent(value: Float): String {
+    val rounded = Math.round(value)
+    return if (rounded > 0) "+$rounded%" else "$rounded%"
 }
 
 @Composable

@@ -23,6 +23,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- PT: Necessária para ligar o processo à rede escolhida pelo failover
+         (Wi-Fi ou dados móveis). Não altera as definições do sistema.
+         EN: Required to bind the process to the network chosen by failover
+         (Wi-Fi or mobile data). It does not change system settings. -->
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
 
     <!-- PT: A biblioteca UVC declara armazenamento total apenas para gravar fotos
          de demonstração. O IRL Streaming não precisa disso e as lojas de

@@ -15,7 +15,7 @@ import kotlin.random.Random
  * PT: - Publicação P2P no navegador: https://vdo.ninja/?push=ID
  * PT: - Visualização:               https://vdo.ninja/?view=ID&p=SENHA
  * PT: - Publicação nativa (WHIP):   https://whip.vdo.ninja/TOKEN
- * PT: - Visualização de WHIP:       https://vdo.ninja/?whipview=TOKEN
+ * PT: - Visualização de WHIP:       https://vdo.ninja/?whip=TOKEN
  *
  * EN: Builds the VDO.Ninja links from the local preferences.
  *
@@ -27,7 +27,7 @@ import kotlin.random.Random
  * EN: - P2P publishing in the browser: https://vdo.ninja/?push=ID
  * EN: - Viewing:                     https://vdo.ninja/?view=ID&p=PASSWORD
  * EN: - Native publishing (WHIP):    https://whip.vdo.ninja/TOKEN
- * EN: - WHIP viewing:                https://vdo.ninja/?whipview=TOKEN
+ * EN: - WHIP viewing:                https://vdo.ninja/?whip=TOKEN
  */
 object VdoNinja {
 
@@ -149,7 +149,9 @@ object VdoNinja {
      */
     fun whipViewUrl(settings: VdoNinjaSettings): String {
         val builder = Uri.parse(effectiveHost(settings)).buildUpon()
-            .appendQueryParameter("whipview", token(settings))
+            // PT: `whip` é o parâmetro documentado; `whipview` é um alias antigo.
+            // EN: `whip` is the documented parameter; `whipview` is a legacy alias.
+            .appendQueryParameter("whip", token(settings))
         if (settings.password.isNotBlank()) {
             builder.appendQueryParameter("password", settings.password.trim())
         }

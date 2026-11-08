@@ -7,10 +7,26 @@ import Foundation
 final class SettingsStore: ObservableObject {
     @Published var settings: AppSettings
 
-    private let storageKey = "irl_streaming_settings_v1"
+    /// PT: Os testes de interface usam uma chave própria para não apagarem as
+    /// PT: preferências reais do utilizador.
+    /// EN: UI tests use their own key so they never erase the user's real
+    /// EN: preferences.
+    private var storageKey: String {
+        isUITest ? "irl_streaming_settings_uitest" : "irl_streaming_settings_v1"
+    }
+
+    private var isUITest: Bool {
+        ProcessInfo.processInfo.arguments.contains("-uiTest")
+    }
 
     init() {
-        if let data = UserDefaults.standard.data(forKey: storageKey),
+        let arguments = ProcessInfo.processInfo.arguments
+        let uiTest = arguments.contains("-uiTest")
+        let key = uiTest ? "irl_streaming_settings_uitest" : "irl_streaming_settings_v1"
+        if uiTest && arguments.contains("-resetSettings") {
+            UserDefaults.standard.removeObject(forKey: key)
+        }
+        if let data = UserDefaults.standard.data(forKey: key),
            let decoded = try? JSONDecoder().decode(AppSettings.self, from: data) {
             settings = decoded
         } else {

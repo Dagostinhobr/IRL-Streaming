@@ -35,10 +35,12 @@ object OrientationSupport {
             else -> mode
         }
 
-    // PT: Orientação pedida à Activity para cada modo.
-    // EN: Orientation requested from the Activity for each mode.
+    // PT: Em AUTO usamos a preferência do utilizador (`USER`), que respeita o
+    // PT: bloqueio de rotação do sistema. Os modos fixos forçam a orientação.
+    // EN: AUTO uses the user's preference (`USER`), which respects the system
+    // EN: rotation lock. Fixed modes force the chosen orientation.
     fun requestedOrientation(mode: VideoOrientation): Int = when (mode) {
-        VideoOrientation.AUTO -> ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+        VideoOrientation.AUTO -> ActivityInfo.SCREEN_ORIENTATION_USER
         VideoOrientation.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         VideoOrientation.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
     }

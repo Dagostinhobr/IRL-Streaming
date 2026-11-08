@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.filled.PictureInPictureAlt
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -50,10 +52,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -91,6 +96,7 @@ import app.streamlink.data.TargetKind
 import app.streamlink.data.VideoOrientation
 import app.streamlink.i18n.localizedLabel
 import app.streamlink.i18n.tr
+import app.streamlink.stream.BondingNetworkType
 import app.streamlink.stream.StreamStatus
 import app.streamlink.stream.StreamUiState
 import app.streamlink.ui.StreamViewModel
@@ -169,6 +175,7 @@ fun HomeScreen(
     var stealth by rememberSaveable { mutableStateOf(false) }
     var showChatSheet by rememberSaveable { mutableStateOf(false) }
     var showAudioSheet by rememberSaveable { mutableStateOf(false) }
+    var showImagePanel by rememberSaveable { mutableStateOf(false) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -201,14 +208,16 @@ fun HomeScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    // PT: Orientação escolhida: Auto respeita o sensor e o bloqueio de rotação
+    // PT: do sistema; Vertical/Horizontal forçam a orientação escolhida.
+    // EN: Chosen orientation: Auto follows the sensor and the system rotation
+    // EN: lock; Portrait/Landscape force the chosen orientation.
     val configuration = LocalConfiguration.current
     val deviceLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     LaunchedEffect(settings.orientation, deviceLandscape) {
         OrientationSupport.lockActivity(activity, settings.orientation)
-        if (settings.orientation == VideoOrientation.AUTO) {
-            viewModel.onDeviceOrientationChanged(deviceLandscape)
-        }
+        viewModel.onDeviceOrientationChanged(deviceLandscape)
     }
 
     DisposableEffect(settings.keepScreenOn) {
@@ -311,7 +320,7 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (state.isLive || state.isBusy) {
-                    LiveStatusPill(state = state, elapsedMillis = elapsed, p2p = vdoLive)
+                    LiveStatusPill(state = state, elapsedMillis = elapsed, p2p = vdoLive || state.p2pNative)
                 } else {
                     IdlePill(target)
                 }
@@ -350,7 +359,7 @@ fun HomeScreen(
                 settings = settings,
                 elapsedMillis = elapsed,
                 micLevel = viewModel.micLevel,
-                p2p = vdoLive,
+                p2p = vdoLive || state.p2pNative,
                 onToggle = {
                     if (state.isLive || state.isBusy) viewModel.stopStream() else viewModel.startStream()
                 },
@@ -369,6 +378,13 @@ fun HomeScreen(
                     .padding(end = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(if (compactActions) 4.dp else 12.dp)
             ) {
+                QuickActionButton(
+                    icon = Icons.Filled.Tune,
+                    contentDescription = tr("Brilho e contraste", "Brightness and contrast"),
+                    active = showImagePanel,
+                    compact = compactActions,
+                    onClick = { showImagePanel = !showImagePanel }
+                )
                 QuickActionButton(
                     icon = if (state.torchOn) Icons.Filled.FlashOn else Icons.Filled.FlashOff,
                     contentDescription = tr("Lanterna", "Torch"),
@@ -434,6 +450,36 @@ fun HomeScreen(
                     contentDescription = tr("Tela preta", "Black screen"),
                     compact = compactActions,
                     onClick = { stealth = true }
+                )
+            }
+
+            // PT: Menu flutuante sobre o preview com brilho/contraste e modo automático.
+            // EN: Floating menu over the preview with brightness/contrast and automatic mode.
+            if (showImagePanel) {
+                CameraImagePanel(
+                    brightness = settings.cameraImage.brightness,
+                    contrast = settings.cameraImage.contrast,
+                    autoBrightness = settings.cameraImage.autoBrightness,
+                    ambientAvailable = state.ambientLightAvailable,
+                    onBrightness = { value ->
+                        viewModel.updateCameraImage {
+                            it.copy(brightness = (value / 100f).coerceIn(-1f, 1f))
+                        }
+                    },
+                    onContrast = { value ->
+                        viewModel.updateCameraImage {
+                            it.copy(contrast = (value / 100f).coerceIn(0.5f, 1.5f))
+                        }
+                    },
+                    onAutoBrightness = { value ->
+                        viewModel.updateCameraImage { it.copy(autoBrightness = value) }
+                    },
+                    onClose = { showImagePanel = false },
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .systemBarsPadding()
+                        .padding(start = 12.dp)
+                        .width(268.dp)
                 )
             }
 
@@ -594,6 +640,110 @@ private fun AudioInputSheetRow(
 }
 
 @Composable
+private fun CameraImagePanel(
+    brightness: Float,
+    contrast: Float,
+    autoBrightness: Boolean,
+    ambientAvailable: Boolean,
+    onBrightness: (Float) -> Unit,
+    onContrast: (Float) -> Unit,
+    onAutoBrightness: (Boolean) -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val autoActive = autoBrightness && ambientAvailable
+    Surface(
+        modifier = modifier,
+        color = Panel.copy(alpha = 0.94f),
+        contentColor = TextPrimary,
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    tr("Imagem", "Image"),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(Modifier.weight(1f))
+                IconButton(onClick = onClose, modifier = Modifier.size(30.dp)) {
+                    Icon(
+                        Icons.Filled.Close,
+                        contentDescription = tr("Fechar", "Close"),
+                        tint = TextMuted,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(tr("Brilho automático", "Automatic brightness"), fontSize = 13.sp)
+                    Text(
+                        if (!ambientAvailable) {
+                            tr("Sem sensor de luz.", "No light sensor.")
+                        } else if (autoActive) {
+                            tr("Segue a luz do ambiente.", "Follows the ambient light.")
+                        } else {
+                            tr("Ajusta à luz do ambiente.", "Adjusts to the ambient light.")
+                        },
+                        color = TextMuted,
+                        fontSize = 11.sp
+                    )
+                }
+                Switch(
+                    checked = autoActive,
+                    enabled = ambientAvailable,
+                    onCheckedChange = onAutoBrightness
+                )
+            }
+
+            Spacer(Modifier.height(6.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(tr("Brilho", "Brightness"), fontSize = 13.sp)
+                Spacer(Modifier.weight(1f))
+                Text(
+                    signedPercentLabel(brightness * 100f),
+                    color = if (autoActive) TextMuted else Mint,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Slider(
+                value = (brightness * 100f).coerceIn(-100f, 100f),
+                onValueChange = onBrightness,
+                valueRange = -100f..100f,
+                steps = 39,
+                enabled = !autoActive
+            )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(tr("Contraste", "Contrast"), fontSize = 13.sp)
+                Spacer(Modifier.weight(1f))
+                Text(
+                    "${(contrast * 100f).roundToInt()}%",
+                    color = Mint,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Slider(
+                value = (contrast * 100f).coerceIn(50f, 150f),
+                onValueChange = onContrast,
+                valueRange = 50f..150f,
+                steps = 19
+            )
+        }
+    }
+}
+
+private fun signedPercentLabel(value: Float): String {
+    val rounded = value.roundToInt()
+    return if (rounded > 0) "+$rounded%" else "$rounded%"
+}
+
+@Composable
 private fun BottomControls(
     state: StreamUiState,
     target: StreamTarget?,
@@ -669,7 +819,12 @@ private fun BottomControls(
         )
 
         Text(
-            text = if (p2p) {
+            text = if (state.p2pNative) {
+                tr(
+                    "P2P nativo • câmera USB",
+                    "Native P2P • USB camera"
+                )
+            } else if (p2p) {
                 tr("Estúdio P2P em segundo plano", "P2P studio in the background")
             } else {
                 buildString {
@@ -895,6 +1050,18 @@ private fun LiveStatusPill(state: StreamUiState, elapsedMillis: Long, p2p: Boole
                 Text(
                     if (p2p) "  P2P" else "  ${formatBitrate(state.bitrateBps)}",
                     color = Mint,
+                    fontSize = 11.sp
+                )
+            }
+            if (state.bondingEnabled && state.bondingNetwork != BondingNetworkType.NONE) {
+                Text(
+                    "  " + when (state.bondingNetwork) {
+                        BondingNetworkType.WIFI -> tr("Wi-Fi", "Wi-Fi")
+                        BondingNetworkType.CELLULAR -> tr("dados móveis", "mobile data")
+                        BondingNetworkType.ETHERNET -> tr("Ethernet", "Ethernet")
+                        else -> tr("rede", "network")
+                    },
+                    color = if (state.bondingSwitchedToBackup) Warn else Mint,
                     fontSize = 11.sp
                 )
             }

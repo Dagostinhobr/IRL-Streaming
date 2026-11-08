@@ -26,8 +26,8 @@ android {
         applicationId = "app.streamlink"
         minSdk = 26
         targetSdk = 35
-        versionCode = 8
-        versionName = "0.8.0"
+        versionCode = 9
+        versionName = "0.9.0"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -110,6 +110,11 @@ dependencies {    implementation(libs.androidx.core.ktx)
     // PT: Câmeras USB UVC (vídeo e microfone integrado)
     // EN: USB UVC cameras (video and built-in microphone)
     implementation(libs.uvcandroid)
+    // PT: WebRTC nativo (libwebrtc) para publicar a câmara USB no VDO.Ninja
+    // PT: através do SDK oficial, sem depender do WebView.
+    // EN: Native WebRTC (libwebrtc) to publish the USB camera to VDO.Ninja
+    // EN: through the official SDK, without relying on the WebView.
+    implementation(libs.streamwebrtc)
 
     testImplementation("junit:junit:4.13.2")
 }

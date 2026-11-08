@@ -9,11 +9,15 @@ import android.view.MotionEvent
 import android.view.SurfaceView
 import app.streamlink.i18n.L10n
 import app.streamlink.data.AppSettings
+import app.streamlink.data.CameraImageSettings
 import app.streamlink.data.CodecSetting
 import app.streamlink.data.DualCameraSettings
+import app.streamlink.data.NetworkBondingSettings
 import app.streamlink.data.PipPosition
 import app.streamlink.data.StreamProtocol
 import app.streamlink.data.StreamTarget
+import app.streamlink.data.UvcTransformSettings
+import app.streamlink.data.VdoNinjaSettings
 import app.streamlink.data.VideoOrientation
 import app.streamlink.util.AudioDevices
 import app.streamlink.util.CameraCapabilities
@@ -59,10 +63,12 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     private var stream: StreamBase? = null
     private var encoderProtocol: StreamProtocol? = null
     private var activeCameraId: String? = null
+    private var activeUvcSource: UvcVideoSource? = null
     private var preparedConfig: StreamConfig? = null
     private var previewView: SurfaceView? = null
     private var autoReconnect = true
     private var recordFile: File? = null
+    private var vdoUsbPublisher: VdoUsbPublisher? = null
 
     // PT: Composição PiP (segunda câmera sobre a principal)
     // EN: PiP composition (second camera over the main one)
@@ -72,6 +78,65 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     private var pendingPipId: String = ""
     private var dualSettings: DualCameraSettings = DualCameraSettings()
     private val mainHandler = Handler(Looper.getMainLooper())
+
+    // PT: Rotação base (orientação da app) e correção própria da câmara USB.
+    // EN: Base rotation (app orientation) and the USB camera's own correction.
+    private var liveRotation = 0
+    private var uvcTransform = UvcTransformSettings()
+
+    // PT: Brilho/contraste manuais ou automáticos (sensor de luz ambiente).
+    // EN: Manual or automatic brightness/contrast (ambient light sensor).
+    private var cameraImage = CameraImageSettings()
+    private var imageFilter: CameraImageFilterRender? = null
+    private val ambientLight = AmbientLightController(context) { brightness ->
+        // PT: O sensor já corre na main thread; aplica só se a automação estiver ativa.
+        // EN: The sensor already runs on the main thread; applies only when automation is on.
+        if (cameraImage.autoBrightness) applyCameraImageValues()
+    }
+
+    // PT: Failover automático Wi-Fi/dados móveis.
+    // EN: Automatic Wi-Fi/mobile data failover.
+    private val networkBonding = NetworkBondingManager(context)
+    private var lastLiveSettings: AppSettings? = null
+    private var lastEndpoint: String? = null
+    private var streamStartGeneration = 0L
+    private var networkRestarting = false
+    private var bondingRestart: Runnable? = null
+
+    init {
+        _state.update { it.copy(ambientLightAvailable = ambientLight.isAvailable) }
+        networkBonding.onChanged = { bonding ->
+            _state.update {
+                it.copy(
+                    bondingEnabled = bonding.enabled,
+                    bondingNetwork = bonding.networkType,
+                    bondingWifiAvailable = bonding.wifiAvailable,
+                    bondingCellularAvailable = bonding.cellularAvailable,
+                    bondingSwitchedToBackup = bonding.switchedToBackup
+                )
+            }
+            // PT: Só reinicia se a rede mudou depois de a transmissão arrancar.
+            // EN: Only restart when the network changed after the stream started.
+            if (bonding.generation > streamStartGeneration) {
+                val active = vdoUsbPublisher?.isActive == true ||
+                    stream?.isStreaming == true ||
+                    _state.value.status == StreamStatus.CONNECTING ||
+                    _state.value.status == StreamStatus.RECONNECTING ||
+                    _state.value.status == StreamStatus.LIVE
+                if (active) scheduleNetworkRestart()
+            }
+        }
+    }
+
+    /**
+     * PT: Aplica as preferências de failover. Chamado ao arrancar e sempre que
+     * PT: o utilizador altera as opções nas configurações.
+     * EN: Applies the failover preferences. Called on start and whenever the
+     * EN: user changes the options in Settings.
+     */
+    fun applyNetworkBonding(settings: NetworkBondingSettings) {
+        networkBonding.update(settings)
+    }
 
     /**
      * PT: Garante que o encoder correto esteja criado: WHIP (WebRTC) para links http(s)
@@ -99,7 +164,9 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         }
         if (compatible && current != null && sameCamera) return current
 
+        if (vdoUsbPublisher?.isActive == true) stopUsbVdo()
         releaseDualCamera()
+        imageFilter = null
         runCatching { current?.release() }
         preparedConfig = null
         _micLevel.value = 0f
@@ -110,8 +177,11 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         // EN: without changing the PCM delivered to the encoder.
         val usb = CameraCapabilities.isUsbCameraId(cameraId)
         val video: VideoSource = if (usb) {
-            UvcVideoSource(context, CameraCapabilities.usbDeviceName(cameraId))
+            UvcVideoSource(context, CameraCapabilities.usbDeviceName(cameraId)).also {
+                activeUvcSource = it
+            }
         } else {
+            activeUvcSource = null
             Camera2Source(context).also { camera ->
                 if (cameraId.isNotBlank()) {
                     runCatching { camera.openCameraId(cameraId) }
@@ -139,9 +209,11 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         settings: AppSettings,
         protocol: StreamProtocol = settings.selectedTarget()?.protocol ?: StreamProtocol.RTMP
     ): Boolean {
+        networkBonding.start(settings.networkBonding)
         if (stream?.isStreaming == true) return true
 
         val config = settings.toStreamConfig(protocol)
+        liveRotation = config.rotation
         val hadPreview = stream?.isOnPreview == true
         val encoder = encoderFor(protocol, settings.cameraId)
         if (preparedConfig == config) {
@@ -150,6 +222,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
             // EN: Ensures the VU meter is active even when the configuration did not change.
             microphone()?.startMonitoring()
             applyDualCamera(settings)
+            applyUvcTransform(settings.uvcTransform)
+            applyCameraImage(settings.cameraImage)
             return true
         }
 
@@ -160,6 +234,7 @@ class StreamEngine(private val context: Context) : ConnectChecker {
                 // PT: O GL é reiniciado abaixo e libera todos os filtros: recria o PiP depois.
                 // EN: The GL is restarted below and releases all filters: recreates the PiP afterwards.
                 releaseDualCamera()
+                imageFilter = null
                 encoder.stopPreview(true)
             }
             encoder.setVideoCodec(if (config.codec == CodecSetting.H264) VideoCodec.H264 else VideoCodec.H265)
@@ -210,6 +285,8 @@ class StreamEngine(private val context: Context) : ConnectChecker {
                     .onFailure { Log.w(TAG, "Falha ao reanexar preview", it) }
             }
             applyDualCamera(settings)
+            applyUvcTransform(settings.uvcTransform)
+            applyCameraImage(settings.cameraImage)
             true
         } catch (error: Exception) {
             Log.e(TAG, "Falha ao preparar encoder", error)
@@ -223,6 +300,18 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     fun attachPreview(view: SurfaceView, settings: AppSettings) {
+        // PT: Ao voltar de outro ecrã a SurfaceView é recriada. Se o encoder ainda
+        // PT: pensa que está em preview, a Surface antiga já não existe e o
+        // PT: resultado é um preview preto. Liberta o preview antigo antes de
+        // PT: preparar/reanexar a Surface nova.
+        // EN: Returning from another screen recreates the SurfaceView. If the
+        // EN: encoder still thinks it is previewing, the old Surface is gone and
+        // EN: the result is a black preview. Release the old preview before
+        // EN: preparing/reattaching the new Surface.
+        if (previewView !== view && stream?.isOnPreview == true) {
+            runCatching { stream?.stopPreview(true) }
+                .onFailure { Log.w(TAG, "Falha ao libertar preview antigo", it) }
+        }
         previewView = view
         if (!prepare(settings)) return
         val encoder = stream ?: return
@@ -230,6 +319,7 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         // PT: O preview está sendo (re)iniciado; o GL pode ter liberado o filtro antigo.
         // EN: The preview is being (re)started; the GL may have released the old filter.
         releaseDualCamera()
+        imageFilter = null
         runCatching {
             encoder.startPreview(view, true)
             updateZoomRange()
@@ -237,6 +327,7 @@ class StreamEngine(private val context: Context) : ConnectChecker {
             Log.w(TAG, "Falha ao iniciar preview", it)
         }
         applyDualCamera(settings)
+        applyCameraImage(settings.cameraImage)
     }
 
     /**
@@ -274,6 +365,102 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         }
     }
 
+    /**
+     * PT: Publica a câmara USB no VDO.Ninja pelo SDK nativo (P2P).
+     * PT: O preview nativo continua ativo, na câmara USB e na horizontal.
+     *
+     * EN: Publishes the USB camera to VDO.Ninja through the native SDK (P2P).
+     * EN: The native preview stays active, on the USB camera and horizontal.
+     */
+    fun startUsbVdo(settings: AppSettings, vdoSettings: VdoNinjaSettings): Boolean {
+        if (vdoUsbPublisher?.isActive == true) return true
+        if (!prepare(settings, StreamProtocol.RTMP)) return false
+        if (activeUvcSource == null) {
+            setError(L10n.t("Câmara USB indisponível.", "USB camera is unavailable."))
+            return false
+        }
+        lastLiveSettings = settings
+        launchUsbVdo(vdoSettings)
+        return true
+    }
+
+    /**
+     * PT: Cria e arranca o publicador WebRTC. Separado de `startUsbVdo` para o
+     * PT: failover poder reiniciar apenas o WebRTC, sem tocar no preview nem
+     * PT: reabrir a câmara USB.
+     * EN: Creates and starts the WebRTC publisher. Split from `startUsbVdo` so
+     * EN: failover can restart only WebRTC, without touching the preview or
+     * EN: reopening the USB camera.
+     */
+    private fun launchUsbVdo(vdoSettings: VdoNinjaSettings) {
+        val uvc = activeUvcSource ?: return
+        // PT: O VU meter usa um AudioRecord próprio; libertamos o microfone
+        // PT: para o libwebrtc o poder capturar sem conflito.
+        // EN: The VU meter uses its own AudioRecord; release the microphone so
+        // EN: libwebrtc can capture it without a conflict.
+        microphone()?.stopMonitoring()
+        _state.update {
+            it.copy(
+                status = StreamStatus.CONNECTING,
+                startedAt = System.currentTimeMillis(),
+                bitrateBps = 0,
+                fps = 0,
+                error = null,
+                reconnecting = false,
+                reconnectAttempt = 0,
+                p2pNative = true
+            )
+        }
+        val publisher = VdoUsbPublisher(
+            context = context,
+            uvc = uvc,
+            transformProvider = {
+                UvcTransformSettings(
+                    // PT: Soma a orientação do telemóvel à correção manual.
+                    // EN: Adds the phone orientation to the manual correction.
+                    rotation = liveRotation + uvcTransform.rotation,
+                    flipHorizontal = uvcTransform.flipHorizontal,
+                    flipVertical = uvcTransform.flipVertical
+                )
+            },
+            onLive = {
+                _state.update {
+                    it.copy(status = StreamStatus.LIVE, startedAt = it.startedAt ?: System.currentTimeMillis())
+                }
+            },
+            onError = { message ->
+                _state.update {
+                    it.copy(status = StreamStatus.ERROR, error = message, p2pNative = false)
+                }
+                microphone()?.startMonitoring()
+            }
+        )
+        vdoUsbPublisher = publisher
+        streamStartGeneration = networkBonding.currentGeneration
+        publisher.start(vdoSettings)
+    }
+
+    fun isUsbP2pActive(): Boolean = vdoUsbPublisher?.isActive == true
+
+    fun stopUsbVdo() {
+        bondingRestart?.let(mainHandler::removeCallbacks)
+        bondingRestart = null
+        val publisher = vdoUsbPublisher ?: return
+        vdoUsbPublisher = null
+        publisher.stop()
+        microphone()?.startMonitoring()
+        _state.update {
+            it.copy(
+                status = StreamStatus.IDLE,
+                startedAt = null,
+                bitrateBps = 0,
+                fps = 0,
+                error = null,
+                p2pNative = false
+            )
+        }
+    }
+
     fun start(settings: AppSettings, target: StreamTarget): Boolean {
         if (!prepare(settings, target.protocol)) return false
         val encoder = stream ?: return false
@@ -301,6 +488,9 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         }
 
         autoReconnect = settings.autoReconnect
+        lastLiveSettings = settings
+        lastEndpoint = endpoint
+        streamStartGeneration = networkBonding.currentGeneration
         _state.update {
             it.copy(
                 status = StreamStatus.CONNECTING,
@@ -333,6 +523,13 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     fun stop() {
+        bondingRestart?.let(mainHandler::removeCallbacks)
+        bondingRestart = null
+        networkRestarting = false
+        lastEndpoint = null
+        if (vdoUsbPublisher?.isActive == true) {
+            stopUsbVdo()
+        }
         val encoder = stream
         runCatching { if (encoder?.isRecording == true) encoder.stopRecord() }
         runCatching { if (encoder?.isStreaming == true) encoder.stopStream() }
@@ -355,6 +552,17 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     fun release() {
+        bondingRestart?.let(mainHandler::removeCallbacks)
+        bondingRestart = null
+        ambientLight.stop()
+        imageFilter = null
+        networkBonding.stop()
+        networkRestarting = false
+        lastLiveSettings = null
+        lastEndpoint = null
+        vdoUsbPublisher?.stop()
+        vdoUsbPublisher = null
+        activeUvcSource = null
         releaseDualCamera()
         microphone()?.stopMonitoring()
         runCatching { stream?.release() }
@@ -364,6 +572,95 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         previewView = null
         _micLevel.value = 0f
         _state.value = StreamUiState()
+    }
+
+    /**
+     * PT: Agenda um único reinício após a rede mudar. O pequeno atraso dá tempo
+     * PT: ao Android para concluir a validação da nova rede e evita reinícios
+     * PT: repetidos quando os callbacks chegam em sequência.
+     * EN: Schedules a single restart after the network changes. The short delay
+     * EN: lets Android finish validating the new network and avoids repeated
+     * EN: restarts when callbacks arrive in sequence.
+     */
+    private fun scheduleNetworkRestart() {
+        bondingRestart?.let(mainHandler::removeCallbacks)
+        val action = Runnable {
+            bondingRestart = null
+            restartAfterNetworkChange()
+        }
+        bondingRestart = action
+        mainHandler.postDelayed(action, NETWORK_RESTART_DELAY_MS)
+    }
+
+    private fun restartAfterNetworkChange() {
+        if (vdoUsbPublisher?.isActive == true) {
+            Log.i(TAG, "Failover de rede: a reiniciar o WebRTC da câmara USB")
+            val settings = lastLiveSettings ?: return
+            val previous = vdoUsbPublisher
+            vdoUsbPublisher = null
+            previous?.stop()
+            _state.update {
+                it.copy(
+                    status = StreamStatus.CONNECTING,
+                    reconnecting = true,
+                    bitrateBps = 0,
+                    fps = 0,
+                    error = null,
+                    p2pNative = true
+                )
+            }
+            // PT: Espera a textura WebRTC antiga ser removida da câmara USB antes
+            // PT: de anexar a nova, para não desligar o novo sink por engano.
+            // EN: Waits for the old WebRTC texture to be removed from the USB
+            // EN: camera before attaching the new one, so the new sink is not
+            // EN: detached by mistake.
+            mainHandler.postDelayed({
+                if (vdoUsbPublisher == null && _state.value.status == StreamStatus.CONNECTING) {
+                    launchUsbVdo(settings.vdoNinja)
+                }
+            }, USB_NETWORK_RESUME_DELAY_MS)
+            return
+        }
+
+        val encoder = stream ?: return
+        val endpoint = lastEndpoint ?: return
+        if (!encoder.isStreaming &&
+            _state.value.status != StreamStatus.CONNECTING &&
+            _state.value.status != StreamStatus.RECONNECTING
+        ) {
+            return
+        }
+
+        networkRestarting = true
+        Log.i(TAG, "Failover de rede: a reiniciar o encoder")
+        runCatching { encoder.stopStream() }
+        _state.update {
+            it.copy(
+                status = StreamStatus.RECONNECTING,
+                reconnecting = true,
+                reconnectAttempt = it.reconnectAttempt + 1,
+                bitrateBps = 0,
+                fps = 0,
+                error = null
+            )
+        }
+        mainHandler.postDelayed({
+            if (stream !== encoder) {
+                networkRestarting = false
+                return@postDelayed
+            }
+            networkRestarting = false
+            runCatching { encoder.startStream(endpoint) }
+                .onFailure { error ->
+                    Log.e(TAG, "Falha ao retomar após mudança de rede", error)
+                    setError(
+                        error.message ?: L10n.t(
+                            "Não foi possível retomar após a mudança de rede.",
+                            "Could not resume after the network change."
+                        )
+                    )
+                }
+        }, NETWORK_RESUME_DELAY_MS)
     }
 
     // ---------------------------------------------------------------------
@@ -385,11 +682,113 @@ class StreamEngine(private val context: Context) : ConnectChecker {
      * EN: (automatic mode) without interrupting the connection.
      */
     fun applyLiveOrientation(orientation: VideoOrientation) {
+        val usbCamera = CameraCapabilities.isUsbCameraId(activeCameraId.orEmpty())
+        // PT: A orientação do telemóvel roda a imagem, incluindo a câmara USB:
+        // PT: vertical em pé e horizontal deitado. A correção manual é somada.
+        // EN: The phone orientation rotates the image, including the USB camera:
+        // EN: portrait upright and landscape when lying down. Manual correction
+        // EN: is added on top.
+        liveRotation = if (orientation == VideoOrientation.PORTRAIT) 90 else 0
         val encoder = stream ?: return
-        val rotation = if (orientation == VideoOrientation.PORTRAIT) 90 else 0
-        runCatching { encoder.getGlInterface().setRotation(rotation) }
-            .onFailure { Log.w(TAG, "Falha ao aplicar orientação", it) }
+        if (usbCamera) {
+            applyGlTransform()
+        } else {
+            runCatching { encoder.getGlInterface().setRotation(liveRotation) }
+                .onFailure { Log.w(TAG, "Falha ao aplicar orientação", it) }
+        }
+        // PT: O WebRTC nativo da câmara USB também acompanha a rotação.
+        // EN: The USB camera's native WebRTC also follows the rotation.
+        vdoUsbPublisher?.updateTransform()
         _state.update { it.copy(orientation = orientation) }
+    }
+
+    /**
+     * PT: Atualiza a correção de posição da câmara USB (rotação e espelhamento).
+     * PT: Aplica-se imediatamente ao preview e ao vídeo, sem reiniciar o encoder.
+     *
+     * EN: Updates the USB camera position correction (rotation and mirroring).
+     * EN: Applied immediately to the preview and video without restarting the encoder.
+     */
+    fun applyUvcTransform(transform: UvcTransformSettings) {
+        uvcTransform = transform
+        vdoUsbPublisher?.updateTransform()
+        if (CameraCapabilities.isUsbCameraId(activeCameraId.orEmpty())) {
+            applyGlTransform()
+        }
+    }
+
+    /**
+     * PT: Atualiza o brilho e o contraste da imagem. Aplica-se logo ao preview,
+     * PT: à transmissão e à gravação, sem reiniciar a câmara nem o encoder.
+     *
+     * EN: Updates the image brightness and contrast. Applied right away to the
+     * EN: preview, stream and recording, without restarting the camera or encoder.
+     */
+    fun applyCameraImage(settings: CameraImageSettings) {
+        val autoChanged = cameraImage.autoBrightness != settings.autoBrightness
+        cameraImage = settings
+        if (settings.autoBrightness) {
+            ambientLight.start()
+        } else if (autoChanged) {
+            ambientLight.stop()
+        }
+        applyCameraImageValues()
+    }
+
+    /**
+     * PT: Nos bastidores decide onde aplicar o ajuste: as câmaras USB recebem
+     * PT: controlos UVC de hardware (chegam também ao VDO.Ninja nativo); as
+     * PT: câmaras nativas passam pelo filtro OpenGL do RootEncoder.
+     *
+     * EN: Behind the scenes it decides where to apply the adjustment: USB
+     * EN: cameras use UVC hardware controls (also reaching native VDO.Ninja);
+     * EN: native cameras go through the RootEncoder OpenGL filter.
+     */
+    private fun applyCameraImageValues() {
+        val auto = cameraImage.autoBrightness && ambientLight.isAvailable
+        val brightness = if (auto) ambientLight.currentBrightness else cameraImage.brightness
+        val contrast = cameraImage.contrast
+        if (CameraCapabilities.isUsbCameraId(activeCameraId.orEmpty())) {
+            activeUvcSource?.applyImageAdjustment(brightness, contrast)
+        } else {
+            ensureImageFilter()?.setValues(brightness, contrast)
+        }
+    }
+
+    private fun ensureImageFilter(): CameraImageFilterRender? {
+        imageFilter?.let { existing ->
+            if (!existing.isReleased) return existing
+            imageFilter = null
+        }
+        val encoder = stream ?: return null
+        val gl = runCatching { encoder.getGlInterface() }.getOrNull() ?: return null
+        val filter = CameraImageFilterRender()
+        imageFilter = filter
+        runCatching { gl.addFilter(filter) }
+            .onFailure { Log.w(TAG, "Falha ao adicionar o filtro de brilho/contraste", it) }
+        return filter
+    }
+
+    /**
+     * PT: Constrói a transformação final da câmara USB. A rotação da app (retrato/
+     * PT: paisagem) é somada à correção escolhida, para que as duas opções possam
+     * PT: ser usadas em conjunto. O espelhamento é aplicado ao preview e à saída.
+     *
+     * EN: Builds the final USB camera transform. The app rotation (portrait/
+     * EN: landscape) is added to the chosen correction so both options can be
+     * EN: combined. Mirroring is applied to the preview and the output.
+     */
+    private fun applyGlTransform() {
+        val encoder = stream ?: return
+        val gl = runCatching { encoder.getGlInterface() }.getOrNull() ?: return
+        val rotation = ((liveRotation + uvcTransform.rotation) % 360 + 360) % 360
+        runCatching {
+            gl.setRotation(rotation)
+            gl.setIsPreviewHorizontalFlip(uvcTransform.flipHorizontal)
+            gl.setIsPreviewVerticalFlip(uvcTransform.flipVertical)
+            gl.setIsStreamHorizontalFlip(uvcTransform.flipHorizontal)
+            gl.setIsStreamVerticalFlip(uvcTransform.flipVertical)
+        }.onFailure { Log.w(TAG, "Falha ao aplicar correção da câmara USB", it) }
     }
 
     fun switchCamera() {
@@ -420,6 +819,12 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     fun toggleMute() {
+        if (vdoUsbPublisher?.isActive == true) {
+            val muted = !_state.value.muted
+            vdoUsbPublisher?.setMuted(muted)
+            _state.update { it.copy(muted = muted) }
+            return
+        }
         val mic = microphone() ?: return
         runCatching {
             if (mic.isMuted()) mic.unMute() else mic.mute()
@@ -428,6 +833,11 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     fun setMuted(muted: Boolean) {
+        if (vdoUsbPublisher?.isActive == true) {
+            vdoUsbPublisher?.setMuted(muted)
+            _state.update { it.copy(muted = muted) }
+            return
+        }
         val mic = microphone() ?: return
         runCatching {
             if (muted) mic.mute() else mic.unMute()
@@ -799,10 +1209,12 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     override fun onConnectionStarted(url: String) {
+        networkRestarting = false
         _state.update { it.copy(status = StreamStatus.CONNECTING, error = null) }
     }
 
     override fun onConnectionSuccess() {
+        networkRestarting = false
         _state.update {
             it.copy(
                 status = StreamStatus.LIVE,
@@ -816,6 +1228,11 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     override fun onConnectionFailed(reason: String) {
+        // PT: Durante o reinício por mudança de rede, ignoramos falhas do
+        // PT: encerramento da ligação antiga; o novo arranque trata do resto.
+        // EN: During a network-change restart, ignore failures from closing the
+        // EN: old connection; the new start handles the rest.
+        if (networkRestarting) return
         val encoder = stream
         val retried = autoReconnect && encoder != null &&
             runCatching { encoder.getStreamClient().reTry(3000, reason, null) }.getOrDefault(false)
@@ -845,6 +1262,7 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     override fun onDisconnect() {
+        if (networkRestarting) return
         if (_state.value.status == StreamStatus.RECONNECTING) return
         _state.update {
             it.copy(
@@ -963,10 +1381,17 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     private fun AppSettings.toStreamConfig(protocol: StreamProtocol): StreamConfig {
-        val rotation = if (orientation == VideoOrientation.PORTRAIT) 90 else 0
+        // PT: A saída segue a orientação escolhida, incluindo a câmara USB:
+        // PT: vertical em pé e horizontal deitado. A correção manual da USB
+        // PT: (rotação/flip) é aplicada por cima desta base.
+        // EN: The output follows the chosen orientation, including the USB
+        // EN: camera: portrait upright and landscape when lying down. The USB
+        // EN: manual correction (rotation/flip) is applied on top of this base.
+        val portrait = orientation == VideoOrientation.PORTRAIT
+        val rotation = if (portrait) 90 else 0
         val videoBitrate = videoBitrateKbps * 1000
-        val outputWidth = if (orientation == VideoOrientation.PORTRAIT) resolution.height else resolution.width
-        val outputHeight = if (orientation == VideoOrientation.PORTRAIT) resolution.width else resolution.height
+        val outputWidth = if (portrait) resolution.height else resolution.width
+        val outputHeight = if (portrait) resolution.width else resolution.height
         // PT: O WHIP do VDO.Ninja é mais compatível com H.264; HEVC fica restrito a RTMP/RTSP.
         // EN: VDO.Ninja WHIP is more compatible with H.264; HEVC is restricted to RTMP/RTSP.
         val effectiveCodec = if (protocol == StreamProtocol.WHIP) CodecSetting.H264 else codec
@@ -1015,5 +1440,13 @@ class StreamEngine(private val context: Context) : ConnectChecker {
          * EN: VU meter floor: below this the microphone is considered silent.
          */
         private const val MIN_MIC_DB = -60.0
+
+        // PT: Atraso antes de reiniciar o encoder após uma mudança de rede.
+        // EN: Delay before restarting the encoder after a network change.
+        private const val NETWORK_RESTART_DELAY_MS = 1_200L
+        private const val NETWORK_RESUME_DELAY_MS = 700L
+        // PT: Tempo para o publicador USB antigo libertar a textura WebRTC.
+        // EN: Time for the old USB publisher to release the WebRTC texture.
+        private const val USB_NETWORK_RESUME_DELAY_MS = 1_000L
     }
 }
