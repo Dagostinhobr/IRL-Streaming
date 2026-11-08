@@ -317,12 +317,12 @@ fun SettingsScreen(
                             tr(
                                 "Câmera USB ativa: zoom, lanterna e PiP ficam indisponíveis. " +
                                     "O áudio USB da câmera é usado automaticamente quando existe. " +
-                                    "A imagem segue a orientação do telemóvel: vertical em pé e " +
-                                    "horizontal deitado, respeitando o bloqueio de rotação.",
+                                    "O preview preenche o ecrã na vertical ou horizontal (com recorte), " +
+                                    "mas a transmissão mantém a imagem completa e direita da câmera.",
                                 "USB camera active: zoom, torch and PiP are unavailable. " +
                                     "The camera's USB audio is used automatically when present. " +
-                                    "The image follows the phone orientation: portrait upright and " +
-                                    "landscape when lying down, respecting the rotation lock."
+                                    "The preview fills the screen in portrait or landscape (cropped), " +
+                                    "but the stream keeps the camera's complete, upright image."
                             ),
                             color = Mint,
                             fontSize = 11.sp

@@ -7,13 +7,13 @@ chat, local recording, multiple targets, VDO.Ninja (P2P), automatic
 Wi-Fi/mobile-data failover and `moblin://` link import. The iOS app ships
 **native RTMP/RTMPS** plus the **VDO.Ninja P2P** studio.
 
-> **Status:** Android beta (v0.9.0) and iOS (v0.9.1). Moblin has years of
+> **Status:** Android beta (v0.9.1) and iOS (v0.9.1). Moblin has years of
 > development and dozens of advanced features (scenes, widgets, SRTLA, remote
 > OBS, Apple Watch). See the [Differences from Moblin](#differences-from-moblin)
 > section before expecting 1:1 parity.
 
 **Download (Android):** [GitHub Releases](https://github.com/Dagostinhobr/IRL-Streaming/releases) —
-`IRL-Streaming-0.9.0.apk` (signed release) or `IRL-Streaming-0.9.0-debug.apk` (test build).
+`IRL-Streaming-0.9.1.apk` (signed release) or `IRL-Streaming-0.9.1-debug.apk` (test build).
 
 The iOS app is not distributed yet; it is built from source in Xcode. See
 [iOS app](#ios-app).
@@ -66,7 +66,9 @@ The iOS app is not distributed yet; it is built from source in Xcode. See
   upright publishes in portrait (720×1280, Instagram style) and sideways in
   landscape (1280×720, YouTube style), and the system rotation lock is respected.
   In P2P the change is applied live without stopping the stream; on RTMP/SRT
-  targets the new resolution takes effect on the next live stream.
+  targets the new resolution takes effect on the next live stream. With a USB
+  camera, the orientation changes only the preview crop (the stream keeps the
+  camera's full landscape frame).
 - **Brightness/contrast button** (side bar, sliders icon) → opens the **floating
   image menu** over the preview, with brightness, contrast and the automatic
   brightness switch. Changes apply immediately to the preview, stream and
@@ -132,11 +134,12 @@ studio WebView:
 
 - the USB frames already used by the preview are relayed to the native encoder,
   so the preview **never switches to the built-in camera**;
-- the published image follows the phone orientation (portrait upright, landscape
-  when lying down) with the same rotation/mirror correction configured in
-  **Settings → Camera → USB image correction**, and respects the system rotation lock;
-- while the stream is live the preview and the transmission use the current
-  orientation; rotating the phone rotates the published image without stopping;
+- the published image keeps the camera's **complete, upright** frame (landscape),
+  with the same rotation/mirror correction configured in
+  **Settings → Camera → USB image correction**; the on-screen preview is cropped
+  to fill the phone orientation, but the transmission itself is not cropped;
+- while the stream is live the preview follows the current orientation and the
+  transmission keeps the full camera image without stopping;
 - mute, the microphone meter and stopping the stream work as in the other modes.
 
 The viewer link is unchanged: `https://vdo.ninja/?view=YOUR_ID&p=YOUR_PASSWORD`.
@@ -187,10 +190,10 @@ the native camera.
   microphone meter on the main screen or use **Settings → Audio → Microphone**. The
   switch is applied in real time.
 - With a USB camera, zoom, torch and PiP are unavailable (UVC limitations).
-- USB cameras follow the phone sensor: the image is **portrait when the phone is
-  upright** and **landscape when it is lying down**. If the system rotation lock
-  is enabled, the image stays in the locked orientation. Rotation is applied live,
-  including during the transmission.
+- The preview fills the phone screen in **portrait when upright** and landscape
+  when lying down, cropping the sides as needed. The camera image itself stays
+  upright and the **transmission keeps the complete landscape frame**, so the
+  stream is never cropped or rotated with the phone.
 - Many external cameras deliver frames rotated or mirrored and expose no
   orientation metadata. **Settings → Camera → USB image correction** offers
   rotation (0°, 90°, 180°, 270°) plus horizontal/vertical mirroring. The
@@ -375,8 +378,8 @@ To serve the download on the local network:
 
 ```bash
 mkdir -p dist
-cp app/build/outputs/apk/release/app-release.apk dist/IRL-Streaming-0.9.0.apk
-cp app/build/outputs/apk/debug/app-debug.apk dist/IRL-Streaming-0.9.0-debug.apk
+cp app/build/outputs/apk/release/app-release.apk dist/IRL-Streaming-0.9.1.apk
+cp app/build/outputs/apk/debug/app-debug.apk dist/IRL-Streaming-0.9.1-debug.apk
 python3 -m http.server 8080 --bind 0.0.0.0 --directory dist
 # open http://YOUR_IP:8080 on the phone
 ```

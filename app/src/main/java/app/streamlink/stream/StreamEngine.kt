@@ -27,6 +27,7 @@ import com.pedro.common.VideoCodec
 import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.encoder.utils.gl.AspectRatioMode
 import com.pedro.library.base.StreamBase
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
@@ -326,6 +327,7 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         }.onFailure {
             Log.w(TAG, "Falha ao iniciar preview", it)
         }
+        applyUvcTransform(settings.uvcTransform)
         applyDualCamera(settings)
         applyCameraImage(settings.cameraImage)
     }
@@ -507,6 +509,7 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         return try {
             encoder.getStreamClient().setReTries(if (settings.autoReconnect) 5 else 0)
             encoder.startStream(endpoint)
+            applyUvcTransform(settings.uvcTransform)
             applyDualCamera(settings)
             true
         } catch (error: Exception) {
@@ -683,12 +686,11 @@ class StreamEngine(private val context: Context) : ConnectChecker {
      */
     fun applyLiveOrientation(orientation: VideoOrientation) {
         val usbCamera = CameraCapabilities.isUsbCameraId(activeCameraId.orEmpty())
-        // PT: A orientação do telemóvel roda a imagem, incluindo a câmara USB:
-        // PT: vertical em pé e horizontal deitado. A correção manual é somada.
-        // EN: The phone orientation rotates the image, including the USB camera:
-        // EN: portrait upright and landscape when lying down. Manual correction
-        // EN: is added on top.
-        liveRotation = if (orientation == VideoOrientation.PORTRAIT) 90 else 0
+        // PT: A câmara USB não roda com o telemóvel: mantém a imagem nativa
+        // PT: direita. A orientação só muda o recorte do preview.
+        // EN: The USB camera does not rotate with the phone: it keeps the native
+        // EN: upright image. Orientation only changes the preview crop.
+        liveRotation = if (!usbCamera && orientation == VideoOrientation.PORTRAIT) 90 else 0
         val encoder = stream ?: return
         if (usbCamera) {
             applyGlTransform()
@@ -784,6 +786,11 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         val rotation = ((liveRotation + uvcTransform.rotation) % 360 + 360) % 360
         runCatching {
             gl.setRotation(rotation)
+            // PT: O preview enche o ecrã (recorte central); a transmissão fica
+            // PT: completa, com a imagem nativa da câmara.
+            // EN: The preview fills the screen (center crop); the transmission
+            // EN: stays complete, with the camera's native image.
+            gl.setAspectRatioMode(AspectRatioMode.Fill)
             gl.setIsPreviewHorizontalFlip(uvcTransform.flipHorizontal)
             gl.setIsPreviewVerticalFlip(uvcTransform.flipVertical)
             gl.setIsStreamHorizontalFlip(uvcTransform.flipHorizontal)
@@ -1381,13 +1388,14 @@ class StreamEngine(private val context: Context) : ConnectChecker {
     }
 
     private fun AppSettings.toStreamConfig(protocol: StreamProtocol): StreamConfig {
-        // PT: A saída segue a orientação escolhida, incluindo a câmara USB:
-        // PT: vertical em pé e horizontal deitado. A correção manual da USB
-        // PT: (rotação/flip) é aplicada por cima desta base.
-        // EN: The output follows the chosen orientation, including the USB
-        // EN: camera: portrait upright and landscape when lying down. The USB
-        // EN: manual correction (rotation/flip) is applied on top of this base.
-        val portrait = orientation == VideoOrientation.PORTRAIT
+        // PT: A câmara USB mantém a imagem nativa (horizontal) para o conteúdo
+        // PT: ficar direito e a transmissão ficar completa. A orientação do
+        // PT: telemóvel só afeta o preview, que é recortado para preencher o ecrã.
+        // EN: The USB camera keeps its native (landscape) image so the content
+        // EN: stays upright and the transmission stays complete. The phone
+        // EN: orientation only affects the preview, which is cropped to fill the screen.
+        val usbCamera = CameraCapabilities.isUsbCameraId(cameraId)
+        val portrait = !usbCamera && orientation == VideoOrientation.PORTRAIT
         val rotation = if (portrait) 90 else 0
         val videoBitrate = videoBitrateKbps * 1000
         val outputWidth = if (portrait) resolution.height else resolution.width
