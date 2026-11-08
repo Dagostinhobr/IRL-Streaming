@@ -317,12 +317,12 @@ fun SettingsScreen(
                             tr(
                                 "Câmera USB ativa: zoom, lanterna e PiP ficam indisponíveis. " +
                                     "O áudio USB da câmera é usado automaticamente quando existe. " +
-                                    "O preview preenche o ecrã na vertical ou horizontal (com recorte), " +
-                                    "mas a transmissão mantém a imagem completa e direita da câmera.",
+                                    "O preview cabe inteiro no ecrã em vertical (sem zoom) e preenche " +
+                                    "em horizontal; a transmissão mantém a imagem completa e direita da câmera.",
                                 "USB camera active: zoom, torch and PiP are unavailable. " +
                                     "The camera's USB audio is used automatically when present. " +
-                                    "The preview fills the screen in portrait or landscape (cropped), " +
-                                    "but the stream keeps the camera's complete, upright image."
+                                    "The preview fits entirely on screen in portrait (no zoom) and fills " +
+                                    "the screen in landscape; the stream keeps the camera's complete, upright image."
                             ),
                             color = Mint,
                             fontSize = 11.sp

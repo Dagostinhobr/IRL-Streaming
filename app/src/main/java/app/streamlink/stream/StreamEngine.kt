@@ -1,6 +1,7 @@
 package app.streamlink.stream
 
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -786,11 +787,13 @@ class StreamEngine(private val context: Context) : ConnectChecker {
         val rotation = ((liveRotation + uvcTransform.rotation) % 360 + 360) % 360
         runCatching {
             gl.setRotation(rotation)
-            // PT: O preview enche o ecrã (recorte central); a transmissão fica
-            // PT: completa, com a imagem nativa da câmara.
-            // EN: The preview fills the screen (center crop); the transmission
-            // EN: stays complete, with the camera's native image.
-            gl.setAspectRatioMode(AspectRatioMode.Fill)
+            // PT: Em portrait a imagem é reduzida até caber inteira (sem zoom);
+            // PT: em paisagem preenche o ecrã com um pequeno recorte.
+            // EN: In portrait the image is scaled down to fit entirely (no zoom);
+            // EN: in landscape it fills the screen with a small crop.
+            val portrait =
+                context.resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE
+            gl.setAspectRatioMode(if (portrait) AspectRatioMode.Adjust else AspectRatioMode.Fill)
             gl.setIsPreviewHorizontalFlip(uvcTransform.flipHorizontal)
             gl.setIsPreviewVerticalFlip(uvcTransform.flipVertical)
             gl.setIsStreamHorizontalFlip(uvcTransform.flipHorizontal)

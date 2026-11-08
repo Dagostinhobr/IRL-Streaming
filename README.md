@@ -7,13 +7,13 @@ chat, local recording, multiple targets, VDO.Ninja (P2P), automatic
 Wi-Fi/mobile-data failover and `moblin://` link import. The iOS app ships
 **native RTMP/RTMPS** plus the **VDO.Ninja P2P** studio.
 
-> **Status:** Android beta (v0.9.1) and iOS (v0.9.1). Moblin has years of
+> **Status:** Android beta (v0.9.2) and iOS (v0.9.2). Moblin has years of
 > development and dozens of advanced features (scenes, widgets, SRTLA, remote
 > OBS, Apple Watch). See the [Differences from Moblin](#differences-from-moblin)
 > section before expecting 1:1 parity.
 
 **Download (Android):** [GitHub Releases](https://github.com/Dagostinhobr/IRL-Streaming/releases) —
-`IRL-Streaming-0.9.1.apk` (signed release) or `IRL-Streaming-0.9.1-debug.apk` (test build).
+`IRL-Streaming-0.9.2.apk` (signed release) or `IRL-Streaming-0.9.2-debug.apk` (test build).
 
 The iOS app is not distributed yet; it is built from source in Xcode. See
 [iOS app](#ios-app).
@@ -67,7 +67,7 @@ The iOS app is not distributed yet; it is built from source in Xcode. See
   landscape (1280×720, YouTube style), and the system rotation lock is respected.
   In P2P the change is applied live without stopping the stream; on RTMP/SRT
   targets the new resolution takes effect on the next live stream. With a USB
-  camera, the orientation changes only the preview crop (the stream keeps the
+  camera, the orientation changes only the preview framing (the stream keeps the
   camera's full landscape frame).
 - **Brightness/contrast button** (side bar, sliders icon) → opens the **floating
   image menu** over the preview, with brightness, contrast and the automatic
@@ -190,10 +190,10 @@ the native camera.
   microphone meter on the main screen or use **Settings → Audio → Microphone**. The
   switch is applied in real time.
 - With a USB camera, zoom, torch and PiP are unavailable (UVC limitations).
-- The preview fills the phone screen in **portrait when upright** and landscape
-  when lying down, cropping the sides as needed. The camera image itself stays
-  upright and the **transmission keeps the complete landscape frame**, so the
-  stream is never cropped or rotated with the phone.
+- The preview **fits entirely on screen in portrait** (no zoom, with black bars)
+  and fills the screen in landscape. The camera image itself stays upright and
+  the **transmission keeps the complete landscape frame**, so the stream is never
+  cropped or rotated with the phone.
 - Many external cameras deliver frames rotated or mirrored and expose no
   orientation metadata. **Settings → Camera → USB image correction** offers
   rotation (0°, 90°, 180°, 270°) plus horizontal/vertical mirroring. The
@@ -378,8 +378,8 @@ To serve the download on the local network:
 
 ```bash
 mkdir -p dist
-cp app/build/outputs/apk/release/app-release.apk dist/IRL-Streaming-0.9.1.apk
-cp app/build/outputs/apk/debug/app-debug.apk dist/IRL-Streaming-0.9.1-debug.apk
+cp app/build/outputs/apk/release/app-release.apk dist/IRL-Streaming-0.9.2.apk
+cp app/build/outputs/apk/debug/app-debug.apk dist/IRL-Streaming-0.9.2-debug.apk
 python3 -m http.server 8080 --bind 0.0.0.0 --directory dist
 # open http://YOUR_IP:8080 on the phone
 ```
